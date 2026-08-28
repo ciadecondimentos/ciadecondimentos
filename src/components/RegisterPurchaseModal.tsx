@@ -61,65 +61,6 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
           total_price: Number.isFinite(unitPrice) ? unitPrice : 0
         }];
       }
-            if (selectedItems.length === 0) return;
-            onSave({
-              customer_id: customer.id,
-              purchase_date: purchaseDate,
-              payment_method: paymentMethod,
-              payment_status: paymentStatus,
-              notes,
-              items: selectedItems
-            });
-          };
-
-          const handleValuePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-            const popup = valuePopupRef.current;
-            if (!popup) return;
-
-            const bounds = popup.getBoundingClientRect();
-            valueDragRef.current = {
-              pointerId: event.pointerId,
-              startX: event.clientX,
-              startY: event.clientY,
-              startLeft: bounds.left,
-              startTop: bounds.top
-            };
-            valueWasDraggedRef.current = false;
-            popup.setPointerCapture(event.pointerId);
-          };
-
-          const handleValuePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-            if (valueDragRef.current.pointerId !== event.pointerId) return;
-
-            const popup = valuePopupRef.current;
-            if (!popup) return;
-
-            const bounds = popup.getBoundingClientRect();
-            const nextLeft = valueDragRef.current.startLeft + event.clientX - valueDragRef.current.startX;
-            const nextTop = valueDragRef.current.startTop + event.clientY - valueDragRef.current.startY;
-            const left = Math.max(0, Math.min(nextLeft, window.innerWidth - bounds.width));
-            const top = Math.max(0, Math.min(nextTop, window.innerHeight - bounds.height));
-
-            if (Math.abs(event.clientX - valueDragRef.current.startX) > 3 || Math.abs(event.clientY - valueDragRef.current.startY) > 3) {
-              valueWasDraggedRef.current = true;
-            }
-            setValuePopupPosition({ left, top });
-          };
-
-          const handleValuePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-            if (valueDragRef.current.pointerId === event.pointerId) {
-              valueDragRef.current.pointerId = -1;
-              valuePopupRef.current?.releasePointerCapture(event.pointerId);
-            }
-          };
-
-          const handleValueClick = () => {
-            if (valueWasDraggedRef.current) {
-              valueWasDraggedRef.current = false;
-              return;
-            }
-            setIsValueExpanded(prev => !prev);
-          };
     });
   };
 
