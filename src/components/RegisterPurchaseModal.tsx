@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { X, Search, Plus, Minus, Trash2, Calendar, DollarSign, Tag, Check, RotateCw, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/lib/customers.functions";
@@ -12,6 +11,17 @@ interface RegisterPurchaseModalProps {
   onSave: (data: any) => void;
   isSaving: boolean;
 }
+
+const toFiniteNumber = (value: unknown) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value !== "string") return 0;
+
+  const normalized = value.trim().replace(/^R\$\s*/i, "");
+  const parsed = normalized.includes(",")
+    ? Number(normalized.replace(/\./g, "").replace(",", "."))
+    : Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
 
 export function RegisterPurchaseModal({ customer, products, onClose, onSave, isSaving }: RegisterPurchaseModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,12 +63,12 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
       if (exists) {
         return prev.filter(item => item.product_name !== product.name);
       } else {
-        const unitPrice = Number(product.price);
+        const unitPrice = toFiniteNumber(product.price);
         return [...prev, {
           product_name: product.name,
           quantity: 1,
-          unit_price: Number.isFinite(unitPrice) ? unitPrice : 0,
-          total_price: Number.isFinite(unitPrice) ? unitPrice : 0
+          unit_price: unitPrice,
+          total_price: unitPrice
         }];
       }
     });
@@ -69,8 +79,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
       if (item.product_name === productName) {
         if (!Number.isFinite(quantity)) return item;
         const q = Math.max(0.1, quantity);
-        const unitPrice = Number(item.unit_price);
-        const safeUnitPrice = Number.isFinite(unitPrice) ? unitPrice : 0;
+        const safeUnitPrice = toFiniteNumber(item.unit_price);
         return { ...item, quantity: q, unit_price: safeUnitPrice, total_price: q * safeUnitPrice };
       }
       return item;
@@ -89,8 +98,9 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
   };
 
   const totalPrice = selectedItems.reduce((acc, item) => {
-    const itemTotal = Number(item.total_price);
-    return acc + (Number.isFinite(itemTotal) ? itemTotal : 0);
+    const quantity = toFiniteNumber(item.quantity);
+    const unitPrice = toFiniteNumber(item.unit_price);
+    return acc + quantity * unitPrice;
   }, 0);
 
   const handleSave = () => {
@@ -103,6 +113,57 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
       notes,
       items: selectedItems
     });
+  };
+
+  const handleValuePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const popup = valuePopupRef.current;
+    if (!popup) return;
+
+    const bounds = popup.getBoundingClientRect();
+    valueDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: bounds.left,
+      startTop: bounds.top
+    };
+    valueWasDraggedRef.current = false;
+    popup.setPointerCapture(event.pointerId);
+  };
+
+  const handleValuePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (valueDragRef.current.pointerId !== event.pointerId) return;
+
+    const popup = valuePopupRef.current;
+    if (!popup) return;
+
+    const bounds = popup.getBoundingClientRect();
+    const nextLeft = valueDragRef.current.startLeft + event.clientX - valueDragRef.current.startX;
+    const nextTop = valueDragRef.current.startTop + event.clientY - valueDragRef.current.startY;
+    const left = Math.max(0, Math.min(nextLeft, window.innerWidth - bounds.width));
+    const top = Math.max(0, Math.min(nextTop, window.innerHeight - bounds.height));
+
+    if (Math.abs(event.clientX - valueDragRef.current.startX) > 3 || Math.abs(event.clientY - valueDragRef.current.startY) > 3) {
+      valueWasDraggedRef.current = true;
+    }
+    setValuePopupPosition({ left, top });
+  };
+
+  const handleValuePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (valueDragRef.current.pointerId === event.pointerId) {
+      valueDragRef.current.pointerId = -1;
+      if (valuePopupRef.current?.hasPointerCapture(event.pointerId)) {
+        valuePopupRef.current.releasePointerCapture(event.pointerId);
+      }
+    }
+  };
+
+  const handleValueClick = () => {
+    if (valueWasDraggedRef.current) {
+      valueWasDraggedRef.current = false;
+      return;
+    }
+    setIsValueExpanded(prev => !prev);
   };
 
   return (
@@ -302,32 +363,43 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
           </button>
         </div>
 
-        {/* Floating Value Ball */}
-        <div className="absolute top-[4.5rem] right-3 sm:right-6 z-[70]">
+      </div>
+
+      {/* Floating Value Popup */}
+      <div
+        ref={valuePopupRef}
+        onPointerDown={handleValuePointerDown}
+        onPointerMove={handleValuePointerMove}
+        onPointerUp={handleValuePointerUp}
+        onPointerCancel={handleValuePointerUp}
+        onClick={handleValueClick}
+        style={valuePopupPosition ?? { left: 12, top: 72 }}
+        className="fixed z-[70] cursor-grab touch-none select-none active:cursor-grabbing"
+      >
           {isValueExpanded ? (
-            <div className="w-40 rounded-2xl border border-[#0070f3]/20 bg-[#eef6ff] px-4 py-3 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
+            <div className="w-40 rounded-2xl border-2 border-[#c99d00] bg-[#f1c40f] px-4 py-3 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex-1">
-                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-tight">Valor</p>
+                <p className="text-[9px] font-black text-[#4d3227] uppercase tracking-widest leading-tight">Valor</p>
                 <p className="text-lg font-bold text-[#4d3227]">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice)}
                 </p>
               </div>
               <button
-                onClick={() => setIsValueExpanded(false)}
-                className="flex-shrink-0 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all"
+                onClick={(event) => { event.stopPropagation(); setIsValueExpanded(false); }}
+                className="flex-shrink-0 w-6 h-6 bg-[#c23321] text-white rounded-full flex items-center justify-center hover:brightness-110 transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <button
-              onClick={() => setIsValueExpanded(true)}
-              className="w-12 h-12 rounded-full bg-[#c23321] text-white shadow-lg flex items-center justify-center hover:brightness-110 transition-all font-bold text-sm hover:scale-110 animate-pulse"
+              type="button"
+              aria-label="Ver valor total"
+              className="w-14 h-14 rounded-full bg-[#f1c40f] border-2 border-[#c99d00] text-[#4d3227] shadow-lg flex items-center justify-center hover:brightness-105 transition-all font-bold text-sm"
             >
               R$
             </button>
           )}
-        </div>
       </div>
     </div>
   );
