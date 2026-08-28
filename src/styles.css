@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@source "../src";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+}
+
+:root {
+  /* Brand Palette */
+  --red-primary: #8E1611;
+  --red-dark: #A71A14;
+  --yellow-primary: #DFB316;
+  --yellow-light: #FFF8E7;
+  --green-success: #539D17;
+  --white: #ffffff;
+  --bg-color: #FFF8E7;
+  --text-main: #2D2D2D;
+  --text-sec: #666666;
+  --border-color: #DFB316;
+
+  --radius: 16px;
+
+  /* Theme Mapping */
+  --background: var(--bg-color);
+  --foreground: var(--text-main);
+  --card: var(--white);
+  --card-foreground: var(--text-main);
+  --popover: var(--white);
+  --popover-foreground: var(--text-main);
+  --primary: var(--red-primary);
+  --primary-foreground: var(--white);
+  --secondary: var(--yellow-primary);
+  --secondary-foreground: var(--text-main);
+  --accent: var(--red-primary);
+  --accent-foreground: var(--white);
+  --muted: var(--yellow-light);
+  --muted-foreground: var(--text-sec);
+  --border: var(--border-color);
+  --success: var(--green-success);
+  --danger: var(--red-primary);
+  --warning: var(--yellow-primary);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: "Wix Madefor Text", var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, select, textarea {
+    max-width: 100%;
+  }
+
+  .store-shell {
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(circle at 12% 18%, color-mix(in oklch, var(--yellow-primary) 10%, transparent) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 84% 72%, color-mix(in oklch, var(--red-primary) 7%, transparent) 0 1px, transparent 1.5px),
+      linear-gradient(135deg, color-mix(in oklch, var(--yellow-light) 70%, transparent), transparent 42%, color-mix(in oklch, var(--yellow-primary) 4%, transparent));
+    background-size: 34px 34px, 46px 46px, 100% 100%;
+  }
+
+  .store-shell main {
+    background: linear-gradient(180deg, transparent 0%, color-mix(in oklch, var(--yellow-light) 32%, transparent) 100%);
+  }
+}
+
+@media (max-width: 639px) {
+  main[class*="max-w-\\[1400px\\]"] {
+    padding: 1rem 0.75rem;
+  }
+
+  main[class*="max-w-\\[1400px\\]"] > * {
+    min-width: 0;
+  }
+
+  main[class*="max-w-\\[1400px\\]"] h1 {
+    font-size: 1.75rem;
+    line-height: 1.15;
+  }
+
+  main[class*="max-w-\\[1400px\\]"] table {
+    min-width: 680px;
+  }
+
+  main[class*="max-w-\\[1400px\\]"] .overflow-x-auto {
+    scrollbar-width: thin;
+    overscroll-behavior-inline: contain;
+  }
+
+  main[class*="max-w-\\[1400px\\]"] [class*="rounded-[24px]"],
+  main[class*="max-w-\\[1400px\\]"] [class*="rounded-[20px]"] {
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .admin-actions,
+  main[class*="max-w-\\[1400px\\]"] > div > .flex.items-center.gap-3 {
+    width: 100%;
+  }
+
+  main[class*="max-w-\\[1400px\\]"] button {
+    min-height: 2.75rem;
+  }
+}
+
+
+/* Marca d'água removida */
+#lovable-badge,
+a[href*="lovable.dev"],
+a[href*="gptengineer"],
+iframe[src*="lovable.dev"],
+div[style*="Edit with Lovable"],
+[id*="lovable-badge"],
+[class*="lovable-badge"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
