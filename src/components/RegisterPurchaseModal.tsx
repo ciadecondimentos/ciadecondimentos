@@ -91,7 +91,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
     if (!selected) return;
 
     const isKg = product.sale_unit?.toUpperCase() === "KG";
-    const step = isKg ? 0.1 : 1;
+    const step = 1;
     const minimum = isKg ? 0.1 : 1;
     const nextQuantity = Math.max(minimum, Number((selected.quantity + amount * step).toFixed(2)));
     updateQuantity(product.name, nextQuantity);
