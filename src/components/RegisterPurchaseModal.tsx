@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useRef } from "react";
 import { X, Search, Plus, Minus, Trash2, Calendar, DollarSign, Tag, Check, RotateCw, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/lib/customers.functions";
@@ -17,6 +18,10 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
   const [activeTab, setActiveTab] = useState<"UN" | "KG">("UN");
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
   const [isValueExpanded, setIsValueExpanded] = useState(false);
+  const [valuePopupPosition, setValuePopupPosition] = useState<{ left: number; top: number } | null>(null);
+  const valuePopupRef = useRef<HTMLDivElement>(null);
+  const valueDragRef = useRef({ pointerId: -1, startX: 0, startY: 0, startLeft: 0, startTop: 0 });
+  const valueWasDraggedRef = useRef(false);
   
   // Form states
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
@@ -48,13 +53,73 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
       if (exists) {
         return prev.filter(item => item.product_name !== product.name);
       } else {
+        const unitPrice = Number(product.price);
         return [...prev, {
           product_name: product.name,
           quantity: 1,
-          unit_price: product.price,
-          total_price: product.price
+          unit_price: Number.isFinite(unitPrice) ? unitPrice : 0,
+          total_price: Number.isFinite(unitPrice) ? unitPrice : 0
         }];
       }
+            if (selectedItems.length === 0) return;
+            onSave({
+              customer_id: customer.id,
+              purchase_date: purchaseDate,
+              payment_method: paymentMethod,
+              payment_status: paymentStatus,
+              notes,
+              items: selectedItems
+            });
+          };
+
+          const handleValuePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+            const popup = valuePopupRef.current;
+            if (!popup) return;
+
+            const bounds = popup.getBoundingClientRect();
+            valueDragRef.current = {
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              startY: event.clientY,
+              startLeft: bounds.left,
+              startTop: bounds.top
+            };
+            valueWasDraggedRef.current = false;
+            popup.setPointerCapture(event.pointerId);
+          };
+
+          const handleValuePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+            if (valueDragRef.current.pointerId !== event.pointerId) return;
+
+            const popup = valuePopupRef.current;
+            if (!popup) return;
+
+            const bounds = popup.getBoundingClientRect();
+            const nextLeft = valueDragRef.current.startLeft + event.clientX - valueDragRef.current.startX;
+            const nextTop = valueDragRef.current.startTop + event.clientY - valueDragRef.current.startY;
+            const left = Math.max(0, Math.min(nextLeft, window.innerWidth - bounds.width));
+            const top = Math.max(0, Math.min(nextTop, window.innerHeight - bounds.height));
+
+            if (Math.abs(event.clientX - valueDragRef.current.startX) > 3 || Math.abs(event.clientY - valueDragRef.current.startY) > 3) {
+              valueWasDraggedRef.current = true;
+            }
+            setValuePopupPosition({ left, top });
+          };
+
+          const handleValuePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+            if (valueDragRef.current.pointerId === event.pointerId) {
+              valueDragRef.current.pointerId = -1;
+              valuePopupRef.current?.releasePointerCapture(event.pointerId);
+            }
+          };
+
+          const handleValueClick = () => {
+            if (valueWasDraggedRef.current) {
+              valueWasDraggedRef.current = false;
+              return;
+            }
+            setIsValueExpanded(prev => !prev);
+          };
     });
   };
 
@@ -63,7 +128,9 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
       if (item.product_name === productName) {
         if (!Number.isFinite(quantity)) return item;
         const q = Math.max(0.1, quantity);
-        return { ...item, quantity: q, total_price: q * item.unit_price };
+        const unitPrice = Number(item.unit_price);
+        const safeUnitPrice = Number.isFinite(unitPrice) ? unitPrice : 0;
+        return { ...item, quantity: q, unit_price: safeUnitPrice, total_price: q * safeUnitPrice };
       }
       return item;
     }));
@@ -80,7 +147,10 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
     updateQuantity(product.name, nextQuantity);
   };
 
-  const totalPrice = selectedItems.reduce((acc, item) => acc + item.total_price, 0);
+  const totalPrice = selectedItems.reduce((acc, item) => {
+    const itemTotal = Number(item.total_price);
+    return acc + (Number.isFinite(itemTotal) ? itemTotal : 0);
+  }, 0);
 
   const handleSave = () => {
     if (selectedItems.length === 0) return;
@@ -96,7 +166,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-2xl max-h-[95vh] rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative bg-card w-full max-w-2xl max-h-[95vh] rounded-2xl sm:rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 bg-[#c23321] text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -162,7 +232,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
                     <div 
                       key={product.id} 
                       className={cn(
-                        "p-4 rounded-xl border transition-all cursor-pointer flex items-center gap-4",
+                        "p-3 sm:p-4 rounded-xl border transition-all cursor-pointer flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4",
                         selected ? "bg-[#f2e8d5]/50 border-[#c23321]" : "bg-card border-border hover:bg-muted/30"
                       )}
                       onClick={() => toggleProduct(product)}
@@ -173,7 +243,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
                       )}>
                         {selected && <Check className="w-3.5 h-3.5" />}
                       </div>
-                      <div className="flex-1">
+                      <div className="min-w-0 flex-1">
                         <p className="font-bold text-[#4d3227] text-sm">{product.name}</p>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
@@ -185,30 +255,30 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
                         </div>
                       </div>
                       {selected && (
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            aria-label={`Adicionar ${product.name}`}
-                            onClick={() => adjustQuantity(product, 1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#c23321] text-white hover:brightness-110 transition-all"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                          <input 
-                            type="number" 
-                            step={product.sale_unit === "KG" ? "0.1" : "1"}
-                            min={product.sale_unit === "KG" ? "0.1" : "1"}
-                            value={selected.quantity}
-                            onChange={(e) => updateQuantity(product.name, parseFloat(e.target.value))}
-                            className="w-16 h-8 px-2 bg-white border border-border rounded-lg text-xs text-center"
-                          />
+                        <div className="flex w-full sm:w-auto shrink-0 items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
                             aria-label={`Remover ${product.name}`}
                             onClick={() => adjustQuantity(product, -1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-white text-[#c23321] hover:bg-red-50 transition-all"
+                            className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg border border-border bg-white text-[#c23321] hover:bg-red-50 transition-all"
                           >
                             <Minus className="w-4 h-4" />
+                          </button>
+                          <input 
+                            type="number" 
+                            step={product.sale_unit?.toUpperCase() === "KG" ? "0.1" : "1"}
+                            min={product.sale_unit?.toUpperCase() === "KG" ? "0.1" : "1"}
+                            value={selected.quantity}
+                            onChange={(e) => updateQuantity(product.name, parseFloat(e.target.value))}
+                            className="h-8 w-12 sm:w-16 shrink-0 px-1 sm:px-2 bg-white border border-border rounded-lg text-xs text-center"
+                          />
+                          <button
+                            type="button"
+                            aria-label={`Adicionar ${product.name}`}
+                            onClick={() => adjustQuantity(product, 1)}
+                            className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg bg-[#c23321] text-white hover:brightness-110 transition-all"
+                          >
+                            <Plus className="w-4 h-4" />
                           </button>
                         </div>
                       )}
@@ -292,7 +362,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
         </div>
 
         {/* Floating Value Ball */}
-        <div className="fixed bottom-6 right-6 z-[70]">
+        <div className="absolute top-[4.5rem] right-3 sm:right-6 z-[70]">
           {isValueExpanded ? (
             <div className="w-40 rounded-2xl border border-[#0070f3]/20 bg-[#eef6ff] px-4 py-3 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex-1">
