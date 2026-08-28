@@ -16,6 +16,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"UN" | "KG">("UN");
   const [selectedItems, setSelectedItems] = useState<any[]>([]);
+  const [isValueExpanded, setIsValueExpanded] = useState(false);
   
   // Form states
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
@@ -218,14 +219,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
           </div>
 
           {/* Footer Area with Form */}
-          <div className="pt-6 border-t border-border space-y-6">
-            {/* Total Display */}
-            <div className="bg-[#eef6ff] p-6 rounded-2xl border border-[#0070f3]/20">
-               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total da Compra:</p>
-               <p className="text-3xl font-bold text-[#4d3227]">
-                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice)}
-               </p>
-            </div>
+          <div className="pt-6 border-t border-border space-y-4">
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -297,11 +291,31 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
           </button>
         </div>
 
-        <div className="fixed top-20 right-6 z-[70] w-[min(280px,calc(100vw-2rem))] rounded-2xl border border-[#0070f3]/20 bg-[#eef6ff] px-5 py-3 shadow-xl md:right-8">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Valor da compra</p>
-          <p className="text-2xl font-bold text-[#4d3227]">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice)}
-          </p>
+        {/* Floating Value Ball */}
+        <div className="fixed bottom-6 right-6 z-[70]">
+          {isValueExpanded ? (
+            <div className="w-40 rounded-2xl border border-[#0070f3]/20 bg-[#eef6ff] px-4 py-3 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex-1">
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-tight">Valor</p>
+                <p className="text-lg font-bold text-[#4d3227]">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice)}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsValueExpanded(false)}
+                className="flex-shrink-0 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsValueExpanded(true)}
+              className="w-12 h-12 rounded-full bg-[#c23321] text-white shadow-lg flex items-center justify-center hover:brightness-110 transition-all font-bold text-sm hover:scale-110 animate-pulse"
+            >
+              R$
+            </button>
+          )}
         </div>
       </div>
     </div>
