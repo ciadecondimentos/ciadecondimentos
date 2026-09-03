@@ -700,6 +700,32 @@ function ClientesPage() {
           customer={selectedCustomer} 
           onClose={() => setSelectedCustomer(null)} 
           onRegisterClick={() => setRegisterModalOpen(true)}
+          onEditGroup={(group) => setEditingGroup(group)}
+        />
+      )}
+
+      {selectedCustomer && editingGroup && (
+        <RegisterPurchaseModal
+          customer={selectedCustomer}
+          products={products || []}
+          title="Editar Pedido"
+          initialItems={editingGroup.items.map(item => ({
+            product_name: item.product_name,
+            quantity: Number(item.quantity),
+            unit_price: Number(item.unit_price),
+            total_price: Number(item.total_price)
+          }))}
+          initialDate={editingGroup.date ? new Date(editingGroup.date).toISOString().split('T')[0] : undefined}
+          initialPaymentMethod={editingGroup.items[0]?.payment_method || "dinheiro"}
+          initialPaymentStatus={editingGroup.items[0]?.payment_status || "pago"}
+          initialNotes={editingGroup.items[0]?.notes || ""}
+          onClose={() => setEditingGroup(null)}
+          onSave={(data) => updateMutation.mutate({
+            ...data,
+            customer_id: selectedCustomer.id,
+            original_date: editingGroup.date,
+          })}
+          isSaving={updateMutation.isPending}
         />
       )}
 
