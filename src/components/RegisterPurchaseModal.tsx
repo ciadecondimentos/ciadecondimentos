@@ -12,7 +12,7 @@ interface RegisterPurchaseModalProps {
   isSaving: boolean;
   title?: string;
   initialItems?: any[];
-  initialDate?: string;
+  initialDate?: string | undefined;
   initialPaymentMethod?: string;
   initialPaymentStatus?: string;
   initialNotes?: string;
