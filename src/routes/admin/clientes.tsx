@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getCustomers, getCustomerStats, getCustomerPurchases, getSalesByPeriod, type Customer, type CustomerPurchase, createCustomer } from "@/lib/customers.functions";
 import { getProducts, type Product } from "@/lib/products.functions";
-import { registerPurchase } from "@/lib/purchases.functions";
+import { registerPurchase, updatePurchaseGroup } from "@/lib/purchases.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -79,7 +79,35 @@ function StatCard({ icon: Icon, value, label, subtext, color }: { icon: any, val
   );
 }
 
-function PurchaseHistoryModal({ customer, onClose, onRegisterClick }: { customer: Customer, onClose: () => void, onRegisterClick: () => void }) {
+function buildWhatsAppLink(customer: Customer, date: string, items: CustomerPurchase[]) {
+  const rawPhone = (customer.whatsapp || customer.phone || "").replace(/\D/g, "");
+  if (!rawPhone) return null;
+  const phone = rawPhone.length <= 11 ? `55${rawPhone}` : rawPhone;
+
+  const formatBRL = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const total = items.reduce((acc, item) => acc + Number(item.total_price), 0);
+
+  const lines = [
+    `*Pedido - Cia. de Condimentos e Especiarias*`,
+    ``,
+    `Cliente: ${customer.full_name}`,
+    `Data: ${date}`,
+    ``,
+    `*Itens:*`,
+    ...items.map(item =>
+      `• ${item.product_name} — ${item.quantity}x ${formatBRL(Number(item.unit_price))} = ${formatBRL(Number(item.total_price))}`
+    ),
+    ``,
+    `*Total: ${formatBRL(total)}*`,
+    `Pagamento: ${(items[0]?.payment_method || "dinheiro").toUpperCase()} (${items.every(i => i.payment_status === 'pago') ? 'Pago' : 'Pendente'})`,
+    ``,
+    `Obrigado pela preferência!`
+  ];
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
+function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup }: { customer: Customer, onClose: () => void, onRegisterClick: () => void, onEditGroup: (group: { date: string, items: CustomerPurchase[] }) => void }) {
   const fetchPurchases = useServerFn(getCustomerPurchases);
   const { data: purchases, isLoading } = useQuery({
     queryKey: ["customer-purchases", customer.id],
@@ -268,10 +296,21 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick }: { customer
                       
                       <div className="p-4 space-y-4">
                         <div className="flex gap-2">
-                          <button className="flex-1 py-2 bg-[#f1c40f] text-[#4d3227] rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => onEditGroup({ date: items[0]?.purchase_date || "", items })}
+                            className="flex-1 py-2 bg-[#f1c40f] text-[#4d3227] rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:brightness-105 transition-all">
                             <Edit className="w-3 h-3" /> EDITAR
                           </button>
-                          <button className="flex-1 py-2 bg-success text-white rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => {
+                              const link = buildWhatsAppLink(customer, date, items);
+                              if (link) {
+                                window.open(link, "_blank", "noopener,noreferrer");
+                              } else {
+                                toast.error("Cliente sem telefone/WhatsApp cadastrado.");
+                              }
+                            }}
+                            className="flex-1 py-2 bg-success text-white rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:brightness-105 transition-all">
                             <span className="text-xs">📱</span> WHATSAPP
                           </button>
                         </div>
@@ -382,6 +421,25 @@ function ClientesPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<{ date: string, items: CustomerPurchase[] } | null>(null);
+  const updatePurchase = useServerFn(updatePurchaseGroup);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updatePurchase({ data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customerStats"] });
+      if (selectedCustomer) {
+        queryClient.invalidateQueries({ queryKey: ["customer-purchases", selectedCustomer.id] });
+      }
+      toast.success("Pedido atualizado com sucesso!");
+      setEditingGroup(null);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar pedido:", error);
+      toast.error("Erro ao atualizar pedido.");
+    }
+  });
 
   const registerMutation = useMutation({
     mutationFn: (data: any) => savePurchase({ data }),
@@ -642,6 +700,32 @@ function ClientesPage() {
           customer={selectedCustomer} 
           onClose={() => setSelectedCustomer(null)} 
           onRegisterClick={() => setRegisterModalOpen(true)}
+          onEditGroup={(group) => setEditingGroup(group)}
+        />
+      )}
+
+      {selectedCustomer && editingGroup && (
+        <RegisterPurchaseModal
+          customer={selectedCustomer}
+          products={products || []}
+          title="Editar Pedido"
+          initialItems={editingGroup.items.map(item => ({
+            product_name: item.product_name,
+            quantity: Number(item.quantity),
+            unit_price: Number(item.unit_price),
+            total_price: Number(item.total_price)
+          }))}
+          initialDate={editingGroup.date ? new Date(editingGroup.date).toISOString().split('T')[0] : undefined}
+          initialPaymentMethod={editingGroup.items[0]?.payment_method || "dinheiro"}
+          initialPaymentStatus={editingGroup.items[0]?.payment_status || "pago"}
+          initialNotes={editingGroup.items[0]?.notes || ""}
+          onClose={() => setEditingGroup(null)}
+          onSave={(data) => updateMutation.mutate({
+            ...data,
+            customer_id: selectedCustomer.id,
+            original_date: editingGroup.date,
+          })}
+          isSaving={updateMutation.isPending}
         />
       )}
 

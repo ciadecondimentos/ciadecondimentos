@@ -10,6 +10,12 @@ interface RegisterPurchaseModalProps {
   onClose: () => void;
   onSave: (data: any) => void;
   isSaving: boolean;
+  title?: string;
+  initialItems?: any[];
+  initialDate?: string | undefined;
+  initialPaymentMethod?: string;
+  initialPaymentStatus?: string;
+  initialNotes?: string;
 }
 
 const toFiniteNumber = (value: unknown) => {
@@ -23,10 +29,10 @@ const toFiniteNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-export function RegisterPurchaseModal({ customer, products, onClose, onSave, isSaving }: RegisterPurchaseModalProps) {
+export function RegisterPurchaseModal({ customer, products, onClose, onSave, isSaving, title, initialItems, initialDate, initialPaymentMethod, initialPaymentStatus, initialNotes }: RegisterPurchaseModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"UN" | "KG">("UN");
-  const [selectedItems, setSelectedItems] = useState<any[]>([]);
+  const [selectedItems, setSelectedItems] = useState<any[]>(initialItems || []);
   const [isValueExpanded, setIsValueExpanded] = useState(false);
   const [valuePopupPosition, setValuePopupPosition] = useState<{ left: number; top: number } | null>(null);
   const valuePopupRef = useRef<HTMLDivElement>(null);
@@ -34,10 +40,10 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
   const valueWasDraggedRef = useRef(false);
   
   // Form states
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
-  const [paymentMethod, setPaymentMethod] = useState("dinheiro");
-  const [paymentStatus, setPaymentStatus] = useState("pago");
-  const [notes, setNotes] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
+  const [paymentMethod, setPaymentMethod] = useState(initialPaymentMethod || "dinheiro");
+  const [paymentStatus, setPaymentStatus] = useState(initialPaymentStatus || "pago");
+  const [notes, setNotes] = useState(initialNotes || "");
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
@@ -173,7 +179,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
         <div className="p-4 bg-[#c23321] text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Plus className="w-6 h-6" />
-            <h2 className="text-xl font-bold font-serif">Registrar Compra</h2>
+            <h2 className="text-xl font-bold font-serif">{title || "Registrar Compra"}</h2>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
             <X className="w-6 h-6" />
