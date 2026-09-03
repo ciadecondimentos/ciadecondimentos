@@ -10,6 +10,12 @@ interface RegisterPurchaseModalProps {
   onClose: () => void;
   onSave: (data: any) => void;
   isSaving: boolean;
+  title?: string;
+  initialItems?: any[];
+  initialDate?: string;
+  initialPaymentMethod?: string;
+  initialPaymentStatus?: string;
+  initialNotes?: string;
 }
 
 const toFiniteNumber = (value: unknown) => {
