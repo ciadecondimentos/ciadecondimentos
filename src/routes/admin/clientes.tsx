@@ -297,7 +297,7 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
                       <div className="p-4 space-y-4">
                         <div className="flex gap-2">
                           <button 
-                            onClick={() => onEditGroup({ date: items[0].purchase_date, items })}
+                            onClick={() => onEditGroup({ date: items[0]?.purchase_date || "", items })}
                             className="flex-1 py-2 bg-[#f1c40f] text-[#4d3227] rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:brightness-105 transition-all">
                             <Edit className="w-3 h-3" /> EDITAR
                           </button>
@@ -421,6 +421,25 @@ function ClientesPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<{ date: string, items: CustomerPurchase[] } | null>(null);
+  const updatePurchase = useServerFn(updatePurchaseGroup);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updatePurchase({ data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customerStats"] });
+      if (selectedCustomer) {
+        queryClient.invalidateQueries({ queryKey: ["customer-purchases", selectedCustomer.id] });
+      }
+      toast.success("Pedido atualizado com sucesso!");
+      setEditingGroup(null);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar pedido:", error);
+      toast.error("Erro ao atualizar pedido.");
+    }
+  });
 
   const registerMutation = useMutation({
     mutationFn: (data: any) => savePurchase({ data }),
