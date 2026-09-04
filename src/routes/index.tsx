@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShoppingCart, User, Search, Menu, X, Phone, Filter } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { ShoppingCart, User, Search, Menu, X, Phone, Filter, Copy, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { getProducts, type Product } from '@/lib/products.functions';
 import { toast } from 'sonner';
-import { createStoreOrder } from '@/lib/store.functions';
+import { createStoreOrder, markStoreOrderPaid } from '@/lib/store.functions';
+import { createPixPayment, getPixPaymentStatus, type PixPaymentResult } from '@/lib/pix.functions';
 import { StoreLayout } from '@/components/StoreLayout';
 import { ProductPreviewModal } from '@/components/ProductPreviewModal';
+
 
 export const Route = createFileRoute('/')({
   head: () => ({
