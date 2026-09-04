@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShoppingCart, User, Search, Menu, X, Phone, Filter } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { ShoppingCart, User, Search, Menu, X, Phone, Filter, Copy, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { getProducts, type Product } from '@/lib/products.functions';
 import { toast } from 'sonner';
-import { createStoreOrder } from '@/lib/store.functions';
+import { createStoreOrder, markStoreOrderPaid } from '@/lib/store.functions';
+import { createPixPayment, getPixPaymentStatus, type PixPaymentResult } from '@/lib/pix.functions';
 import { StoreLayout } from '@/components/StoreLayout';
 import { ProductPreviewModal } from '@/components/ProductPreviewModal';
+
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -35,6 +37,9 @@ export const Route = createFileRoute('/')({
 function StoreIndex() {
   const isHydrated = useHydrated();
   const createOrderFn = useServerFn(createStoreOrder);
+  const createPixFn = useServerFn(createPixPayment);
+  const pixStatusFn = useServerFn(getPixPaymentStatus);
+  const markPaidFn = useServerFn(markStoreOrderPaid);
   const loaderProducts = Route.useLoaderData();
 
   const { data: products = [], isLoading } = useQuery({
@@ -53,6 +58,34 @@ function StoreIndex() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
+  const [pixData, setPixData] = useState<PixPaymentResult | null>(null);
+  const [pixOrderId, setPixOrderId] = useState<string | number | null>(null);
+  const [pixStatus, setPixStatus] = useState<string>('pending');
+  const [isProcessingPix, setIsProcessingPix] = useState(false);
+
+  useEffect(() => {
+    if (!pixData || pixStatus === 'approved') return;
+    let active = true;
+    const interval = setInterval(async () => {
+      try {
+        const result = await pixStatusFn({ data: { paymentId: pixData.id } });
+        if (!active) return;
+        setPixStatus(result.status);
+        if (result.status === 'approved') {
+          clearInterval(interval);
+          if (pixOrderId != null) {
+            try { await markPaidFn({ data: { purchaseId: pixOrderId } }); } catch { /* noop */ }
+          }
+          setCart([]);
+          toast.success("Pagamento PIX confirmado!");
+        }
+      } catch {
+        /* tenta novamente no próximo ciclo */
+      }
+    }, 4000);
+    return () => { active = false; clearInterval(interval); };
+  }, [pixData, pixStatus, pixOrderId, pixStatusFn, markPaidFn]);
+
 
   const categories = useMemo(() => {
     const cats = new Set(products.map((p: Product) => p.category).filter((c): c is string => Boolean(c)));
@@ -109,8 +142,8 @@ function StoreIndex() {
     return cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   }, [cart]);
 
-  const finalizeOrder = async (method: 'pix' | 'money' | 'card') => {
-    await createOrderFn({
+  const finalizeOrder = async (method: 'pix' | 'money' | 'card', paymentStatus: 'pago' | 'pendente' = 'pendente') => {
+    return await createOrderFn({
       data: {
         customerName: (document.getElementById('customer-name') as HTMLInputElement)?.value || "Cliente Online",
         items: cart.map(item => ({
@@ -122,12 +155,10 @@ function StoreIndex() {
         })),
         total: cartTotal,
         paymentMethod: method,
-        status: 'pending'
+        status: 'pending',
+        paymentStatus,
       }
     });
-    setCart([]);
-    setCashReceived('');
-    setIsCheckoutOpen(false);
   };
 
   const handleCheckout = async () => {
@@ -137,13 +168,56 @@ function StoreIndex() {
       return;
     }
 
+    const customerName = (document.getElementById('customer-name') as HTMLInputElement)?.value?.trim() || '';
+
+    if (paymentMethod === 'pix') {
+      if (!customerName) {
+        toast.error("Informe seu nome para gerar o PIX.");
+        return;
+      }
+      setIsProcessingPix(true);
+      try {
+        const order = await finalizeOrder('pix', 'pendente');
+        const payment = await createPixFn({
+          data: {
+            amount: cartTotal,
+            customerName,
+            description: `Pedido #${order?.id ?? ''} - Cia de Condimentos`,
+          }
+        });
+        setPixOrderId(order?.id ?? null);
+        setPixData(payment);
+        setPixStatus(payment.status);
+        setIsCheckoutOpen(false);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Erro ao gerar o PIX.");
+      } finally {
+        setIsProcessingPix(false);
+      }
+      return;
+    }
+
     try {
-      await finalizeOrder(paymentMethod);
+      await finalizeOrder(paymentMethod, 'pendente');
+      setCart([]);
+      setCashReceived('');
+      setIsCheckoutOpen(false);
       toast.success("Pedido realizado com sucesso!");
     } catch (error) {
       toast.error("Erro ao processar pedido.");
     }
   };
+
+  const copyPixCode = async () => {
+    if (!pixData?.qrCode) return;
+    try {
+      await navigator.clipboard.writeText(pixData.qrCode);
+      toast.success("Código PIX copiado!");
+    } catch {
+      toast.error("Não foi possível copiar. Selecione o código manualmente.");
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -412,14 +486,83 @@ function StoreIndex() {
             <div className="p-8 bg-[#4d3227]/5">
               <Button 
                 onClick={handleCheckout}
-                className="w-full h-14 bg-[#8E1611] hover:bg-[#A71A14] text-white rounded-2xl font-bold uppercase tracking-widest text-sm"
+                disabled={isProcessingPix}
+                className="w-full h-14 bg-[#8E1611] hover:bg-[#A71A14] text-white rounded-2xl font-bold uppercase tracking-widest text-sm disabled:opacity-60"
               >
-                Confirmar Pedido • R$ {cartTotal.toFixed(2)}
+                {isProcessingPix
+                  ? <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Gerando PIX...</span>
+                  : <>{paymentMethod === 'pix' ? 'Pagar com PIX' : 'Confirmar Pedido'} • R$ {cartTotal.toFixed(2)}</>}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      {/* PIX Payment Dialog */}
+      {pixData && (
+        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-[#4d3227]/10 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold text-[#4d3227]">Pagamento PIX</h3>
+                <p className="text-xs font-bold text-[#539D17] uppercase tracking-widest mt-1">
+                  R$ {cartTotal.toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                onClick={() => { setPixData(null); setPixOrderId(null); setPixStatus('pending'); }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="p-6 space-y-5 text-center">
+              {pixStatus === 'approved' ? (
+                <div className="space-y-3 py-6">
+                  <CheckCircle2 className="w-16 h-16 text-[#539D17] mx-auto" />
+                  <p className="text-lg font-bold text-[#4d3227]">Pagamento confirmado!</p>
+                  <p className="text-sm text-[#4d3227]/60">Seu pedido já foi enviado para separação.</p>
+                  <Button
+                    onClick={() => { setPixData(null); setPixOrderId(null); setPixStatus('pending'); }}
+                    className="h-12 px-8 rounded-2xl bg-[#8E1611] hover:bg-[#A71A14] text-white font-bold uppercase tracking-widest text-xs"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {pixData.qrCodeBase64 && (
+                    <img
+                      src={`data:image/png;base64,${pixData.qrCodeBase64}`}
+                      alt="QR Code PIX"
+                      className="w-56 h-56 mx-auto rounded-2xl border border-[#DFB316]/30 bg-white p-2"
+                    />
+                  )}
+                  <p className="text-xs text-[#4d3227]/60">
+                    Escaneie o QR Code no app do seu banco ou use o código copia e cola abaixo.
+                  </p>
+                  <div className="rounded-2xl bg-[#FFF8E7] p-3 text-left">
+                    <p className="text-[10px] font-mono break-all text-[#4d3227]/70 line-clamp-3">{pixData.qrCode}</p>
+                  </div>
+                  <Button
+                    onClick={copyPixCode}
+                    className="w-full h-12 rounded-2xl bg-[#8E1611] hover:bg-[#A71A14] text-white font-bold uppercase tracking-widest text-xs"
+                  >
+                    <Copy className="w-4 h-4 mr-2" /> Copiar código PIX
+                  </Button>
+                  <p className="flex items-center justify-center gap-2 text-xs font-bold text-[#DFB316] uppercase tracking-widest">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Aguardando pagamento...
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
     </StoreLayout>
   );

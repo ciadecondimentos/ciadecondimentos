@@ -15,7 +15,9 @@ export interface CreateOrderParams {
   total: number;
   paymentMethod: 'pix' | 'money' | 'card';
   status: 'pending' | 'completed';
+  paymentStatus?: 'pago' | 'pendente';
 }
+
 
 export const createStoreOrder = createServerFn({ method: "POST" })
   .validator((data: CreateOrderParams) => data)
@@ -66,7 +68,7 @@ export const createStoreOrder = createServerFn({ method: "POST" })
           ${data.total},
           ${data.total}, -- 'amount' seems to be used as total in some places
           ${data.paymentMethod},
-          ${data.paymentMethod === 'pix' ? 'pago' : 'pendente'},
+          ${data.paymentStatus ?? 'pendente'},
           NOW()
         )
         RETURNING *
@@ -78,3 +80,16 @@ export const createStoreOrder = createServerFn({ method: "POST" })
       throw error;
     }
   });
+
+export const markStoreOrderPaid = createServerFn({ method: "POST" })
+  .validator((data: { purchaseId: string | number }) => data)
+  .handler(async ({ data }) => {
+    const [updated] = await sql`
+      UPDATE crm_purchases
+      SET payment_status = 'pago'
+      WHERE id = ${data.purchaseId}
+      RETURNING id, payment_status
+    `;
+    return updated ?? null;
+  });
+
