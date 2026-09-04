@@ -486,14 +486,83 @@ function StoreIndex() {
             <div className="p-8 bg-[#4d3227]/5">
               <Button 
                 onClick={handleCheckout}
-                className="w-full h-14 bg-[#8E1611] hover:bg-[#A71A14] text-white rounded-2xl font-bold uppercase tracking-widest text-sm"
+                disabled={isProcessingPix}
+                className="w-full h-14 bg-[#8E1611] hover:bg-[#A71A14] text-white rounded-2xl font-bold uppercase tracking-widest text-sm disabled:opacity-60"
               >
-                Confirmar Pedido • R$ {cartTotal.toFixed(2)}
+                {isProcessingPix
+                  ? <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Gerando PIX...</span>
+                  : <>{paymentMethod === 'pix' ? 'Pagar com PIX' : 'Confirmar Pedido'} • R$ {cartTotal.toFixed(2)}</>}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      {/* PIX Payment Dialog */}
+      {pixData && (
+        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-[#4d3227]/10 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold text-[#4d3227]">Pagamento PIX</h3>
+                <p className="text-xs font-bold text-[#539D17] uppercase tracking-widest mt-1">
+                  R$ {cartTotal.toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                onClick={() => { setPixData(null); setPixOrderId(null); setPixStatus('pending'); }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="p-6 space-y-5 text-center">
+              {pixStatus === 'approved' ? (
+                <div className="space-y-3 py-6">
+                  <CheckCircle2 className="w-16 h-16 text-[#539D17] mx-auto" />
+                  <p className="text-lg font-bold text-[#4d3227]">Pagamento confirmado!</p>
+                  <p className="text-sm text-[#4d3227]/60">Seu pedido já foi enviado para separação.</p>
+                  <Button
+                    onClick={() => { setPixData(null); setPixOrderId(null); setPixStatus('pending'); }}
+                    className="h-12 px-8 rounded-2xl bg-[#8E1611] hover:bg-[#A71A14] text-white font-bold uppercase tracking-widest text-xs"
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {pixData.qrCodeBase64 && (
+                    <img
+                      src={`data:image/png;base64,${pixData.qrCodeBase64}`}
+                      alt="QR Code PIX"
+                      className="w-56 h-56 mx-auto rounded-2xl border border-[#DFB316]/30 bg-white p-2"
+                    />
+                  )}
+                  <p className="text-xs text-[#4d3227]/60">
+                    Escaneie o QR Code no app do seu banco ou use o código copia e cola abaixo.
+                  </p>
+                  <div className="rounded-2xl bg-[#FFF8E7] p-3 text-left">
+                    <p className="text-[10px] font-mono break-all text-[#4d3227]/70 line-clamp-3">{pixData.qrCode}</p>
+                  </div>
+                  <Button
+                    onClick={copyPixCode}
+                    className="w-full h-12 rounded-2xl bg-[#8E1611] hover:bg-[#A71A14] text-white font-bold uppercase tracking-widest text-xs"
+                  >
+                    <Copy className="w-4 h-4 mr-2" /> Copiar código PIX
+                  </Button>
+                  <p className="flex items-center justify-center gap-2 text-xs font-bold text-[#DFB316] uppercase tracking-widest">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Aguardando pagamento...
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
     </StoreLayout>
   );
