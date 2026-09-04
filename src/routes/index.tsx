@@ -109,8 +109,8 @@ function StoreIndex() {
     return cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   }, [cart]);
 
-  const finalizeOrder = async (method: 'pix' | 'money' | 'card') => {
-    await createOrderFn({
+  const finalizeOrder = async (method: 'pix' | 'money' | 'card', paymentStatus: 'pago' | 'pendente' = 'pendente') => {
+    return await createOrderFn({
       data: {
         customerName: (document.getElementById('customer-name') as HTMLInputElement)?.value || "Cliente Online",
         items: cart.map(item => ({
@@ -122,12 +122,10 @@ function StoreIndex() {
         })),
         total: cartTotal,
         paymentMethod: method,
-        status: 'pending'
+        status: 'pending',
+        paymentStatus,
       }
     });
-    setCart([]);
-    setCashReceived('');
-    setIsCheckoutOpen(false);
   };
 
   const handleCheckout = async () => {
@@ -137,13 +135,56 @@ function StoreIndex() {
       return;
     }
 
+    const customerName = (document.getElementById('customer-name') as HTMLInputElement)?.value?.trim() || '';
+
+    if (paymentMethod === 'pix') {
+      if (!customerName) {
+        toast.error("Informe seu nome para gerar o PIX.");
+        return;
+      }
+      setIsProcessingPix(true);
+      try {
+        const order = await finalizeOrder('pix', 'pendente');
+        const payment = await createPixFn({
+          data: {
+            amount: cartTotal,
+            customerName,
+            description: `Pedido #${order?.id ?? ''} - Cia de Condimentos`,
+          }
+        });
+        setPixOrderId(order?.id ?? null);
+        setPixData(payment);
+        setPixStatus(payment.status);
+        setIsCheckoutOpen(false);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Erro ao gerar o PIX.");
+      } finally {
+        setIsProcessingPix(false);
+      }
+      return;
+    }
+
     try {
-      await finalizeOrder(paymentMethod);
+      await finalizeOrder(paymentMethod, 'pendente');
+      setCart([]);
+      setCashReceived('');
+      setIsCheckoutOpen(false);
       toast.success("Pedido realizado com sucesso!");
     } catch (error) {
       toast.error("Erro ao processar pedido.");
     }
   };
+
+  const copyPixCode = async () => {
+    if (!pixData?.qrCode) return;
+    try {
+      await navigator.clipboard.writeText(pixData.qrCode);
+      toast.success("Código PIX copiado!");
+    } catch {
+      toast.error("Não foi possível copiar. Selecione o código manualmente.");
+    }
+  };
+
 
   if (isLoading) {
     return (
