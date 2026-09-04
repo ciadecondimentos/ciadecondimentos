@@ -37,6 +37,9 @@ export const Route = createFileRoute('/')({
 function StoreIndex() {
   const isHydrated = useHydrated();
   const createOrderFn = useServerFn(createStoreOrder);
+  const createPixFn = useServerFn(createPixPayment);
+  const pixStatusFn = useServerFn(getPixPaymentStatus);
+  const markPaidFn = useServerFn(markStoreOrderPaid);
   const loaderProducts = Route.useLoaderData();
 
   const { data: products = [], isLoading } = useQuery({
@@ -55,6 +58,34 @@ function StoreIndex() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
+  const [pixData, setPixData] = useState<PixPaymentResult | null>(null);
+  const [pixOrderId, setPixOrderId] = useState<string | number | null>(null);
+  const [pixStatus, setPixStatus] = useState<string>('pending');
+  const [isProcessingPix, setIsProcessingPix] = useState(false);
+
+  useEffect(() => {
+    if (!pixData || pixStatus === 'approved') return;
+    let active = true;
+    const interval = setInterval(async () => {
+      try {
+        const result = await pixStatusFn({ data: { paymentId: pixData.id } });
+        if (!active) return;
+        setPixStatus(result.status);
+        if (result.status === 'approved') {
+          clearInterval(interval);
+          if (pixOrderId != null) {
+            try { await markPaidFn({ data: { purchaseId: pixOrderId } }); } catch { /* noop */ }
+          }
+          setCart([]);
+          toast.success("Pagamento PIX confirmado!");
+        }
+      } catch {
+        /* tenta novamente no próximo ciclo */
+      }
+    }, 4000);
+    return () => { active = false; clearInterval(interval); };
+  }, [pixData, pixStatus, pixOrderId, pixStatusFn, markPaidFn]);
+
 
   const categories = useMemo(() => {
     const cats = new Set(products.map((p: Product) => p.category).filter((c): c is string => Boolean(c)));
