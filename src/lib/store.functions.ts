@@ -15,7 +15,9 @@ export interface CreateOrderParams {
   total: number;
   paymentMethod: 'pix' | 'money' | 'card';
   status: 'pending' | 'completed';
+  paymentStatus?: 'pago' | 'pendente';
 }
+
 
 export const createStoreOrder = createServerFn({ method: "POST" })
   .validator((data: CreateOrderParams) => data)
