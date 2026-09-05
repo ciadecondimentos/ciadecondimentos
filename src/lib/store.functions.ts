@@ -50,23 +50,26 @@ export const createStoreOrder = createServerFn({ method: "POST" })
       // We'll record it in crm_purchases. 
       // If there are multiple items, we'll join them in product_name for now to match the existing schema
       const productDetails = data.items.map(item => `${item.name} (${item.quantity}${item.unit})`).join(', ');
+      const totalQuantity = data.items.reduce((acc, item) => acc + item.quantity, 0);
       
       const [newPurchase] = await sql`
         INSERT INTO crm_purchases (
           customer_id,
           product_name,
+          quantity,
+          unit_price,
           purchase_date,
           total_price,
-          amount,
           payment_method,
           payment_status,
           created_at
         ) VALUES (
           ${customerId},
           ${productDetails},
+          ${totalQuantity},
+          ${data.total},
           ${purchaseDate},
           ${data.total},
-          ${data.total}, -- 'amount' seems to be used as total in some places
           ${data.paymentMethod},
           ${data.paymentStatus ?? 'pendente'},
           NOW()
