@@ -57,7 +57,6 @@ export const createStoreOrder = createServerFn({ method: "POST" })
           product_name,
           purchase_date,
           total_price,
-          amount,
           payment_method,
           payment_status,
           created_at
@@ -66,7 +65,6 @@ export const createStoreOrder = createServerFn({ method: "POST" })
           ${productDetails},
           ${purchaseDate},
           ${data.total},
-          ${data.total}, -- 'amount' seems to be used as total in some places
           ${data.paymentMethod},
           ${data.paymentStatus ?? 'pendente'},
           NOW()
