@@ -50,6 +50,7 @@ export const createStoreOrder = createServerFn({ method: "POST" })
       // We'll record it in crm_purchases. 
       // If there are multiple items, we'll join them in product_name for now to match the existing schema
       const productDetails = data.items.map(item => `${item.name} (${item.quantity}${item.unit})`).join(', ');
+      const totalQuantity = data.items.reduce((acc, item) => acc + item.quantity, 0);
       
       const [newPurchase] = await sql`
         INSERT INTO crm_purchases (
