@@ -5,6 +5,8 @@ import { sql } from "./db.server";
 export interface CreateOrderParams {
   customerId?: string | number;
   customerName: string;
+  address?: string;
+  location?: string;
   items: {
     productId: string | number;
     name: string;
@@ -17,6 +19,7 @@ export interface CreateOrderParams {
   status: 'pending' | 'completed';
   paymentStatus?: 'pago' | 'pendente';
 }
+
 
 
 export const createStoreOrder = createServerFn({ method: "POST" })
