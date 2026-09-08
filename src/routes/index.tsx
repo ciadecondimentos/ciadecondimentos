@@ -55,6 +55,10 @@ function StoreIndex() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'money' | 'card'>('pix');
   const [cashReceived, setCashReceived] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [address, setAddress] = useState('');
+  const [location, setLocation] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
@@ -62,6 +66,7 @@ function StoreIndex() {
   const [pixOrderId, setPixOrderId] = useState<string | number | null>(null);
   const [pixStatus, setPixStatus] = useState<string>('pending');
   const [isProcessingPix, setIsProcessingPix] = useState(false);
+
 
   useEffect(() => {
     if (!pixData || pixStatus === 'approved') return;
@@ -142,10 +147,33 @@ function StoreIndex() {
     return cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   }, [cart]);
 
+  const requestLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast.error("Seu navegador não permite enviar a localização.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation(`https://maps.google.com/?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`);
+        setIsLocating(false);
+        toast.success("Localização anexada ao pedido!");
+      },
+      () => {
+        setIsLocating(false);
+        toast.error("Não conseguimos obter sua localização. Autorize o acesso e tente novamente.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const finalizeOrder = async (method: 'pix' | 'money' | 'card', paymentStatus: 'pago' | 'pendente' = 'pendente') => {
     return await createOrderFn({
       data: {
-        customerName: (document.getElementById('customer-name') as HTMLInputElement)?.value || "Cliente Online",
+        customerName: customerName.trim() || "Cliente Online",
+        address: address.trim() || undefined,
+        location: location || undefined,
         items: cart.map(item => ({
           productId: item.product.id,
           name: item.product.name,
@@ -162,26 +190,29 @@ function StoreIndex() {
   };
 
   const handleCheckout = async () => {
+    if (!customerName.trim()) {
+      toast.error("Informe seu nome completo.");
+      return;
+    }
+    if (!address.trim()) {
+      toast.error("Informe o endereço de entrega.");
+      return;
+    }
+
     const received = Number(cashReceived.replace(',', '.'));
     if (paymentMethod === 'money' && (!Number.isFinite(received) || received < cartTotal)) {
       toast.error(`Informe pelo menos R$ ${cartTotal.toFixed(2).replace('.', ',')} em dinheiro.`);
       return;
     }
 
-    const customerName = (document.getElementById('customer-name') as HTMLInputElement)?.value?.trim() || '';
-
     if (paymentMethod === 'pix') {
-      if (!customerName) {
-        toast.error("Informe seu nome para gerar o PIX.");
-        return;
-      }
       setIsProcessingPix(true);
       try {
         const order = await finalizeOrder('pix', 'pendente');
         const payment = await createPixFn({
           data: {
             amount: cartTotal,
-            customerName,
+            customerName: customerName.trim(),
             description: `Pedido #${order?.id ?? ''} - Cia de Condimentos`,
           }
         });
@@ -207,6 +238,7 @@ function StoreIndex() {
       toast.error("Erro ao processar pedido.");
     }
   };
+
 
   const copyPixCode = async () => {
     if (!pixData?.qrCode) return;
