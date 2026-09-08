@@ -65,6 +65,9 @@ export const createStoreOrder = createServerFn({ method: "POST" })
           total_price,
           payment_method,
           payment_status,
+          source,
+          delivery_address,
+          delivery_location,
           created_at
         ) VALUES (
           ${customerId},
@@ -75,10 +78,14 @@ export const createStoreOrder = createServerFn({ method: "POST" })
           ${data.total},
           ${data.paymentMethod},
           ${data.paymentStatus ?? 'pendente'},
+          'loja',
+          ${data.address ?? null},
+          ${data.location ?? null},
           NOW()
         )
         RETURNING *
       `;
+
       
       return newPurchase;
     } catch (error) {
