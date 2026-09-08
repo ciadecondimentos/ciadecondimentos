@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShoppingCart, User, Search, Menu, X, Phone, Filter, Copy, CheckCircle2, Loader2 } from 'lucide-react';
+import { ShoppingCart, Search, X, Copy, CheckCircle2, Loader2, MapPin, Trash2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from '@/lib/utils';
