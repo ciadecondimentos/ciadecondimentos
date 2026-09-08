@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShoppingCart, User, Search, Menu, X, Phone, Filter, Copy, CheckCircle2, Loader2 } from 'lucide-react';
+import { ShoppingCart, Search, X, Copy, CheckCircle2, Loader2, MapPin, Trash2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from '@/lib/utils';
@@ -55,6 +55,10 @@ function StoreIndex() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'money' | 'card'>('pix');
   const [cashReceived, setCashReceived] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [address, setAddress] = useState('');
+  const [location, setLocation] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
@@ -62,6 +66,7 @@ function StoreIndex() {
   const [pixOrderId, setPixOrderId] = useState<string | number | null>(null);
   const [pixStatus, setPixStatus] = useState<string>('pending');
   const [isProcessingPix, setIsProcessingPix] = useState(false);
+
 
   useEffect(() => {
     if (!pixData || pixStatus === 'approved') return;
@@ -142,10 +147,33 @@ function StoreIndex() {
     return cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   }, [cart]);
 
+  const requestLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast.error("Seu navegador não permite enviar a localização.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation(`https://maps.google.com/?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`);
+        setIsLocating(false);
+        toast.success("Localização anexada ao pedido!");
+      },
+      () => {
+        setIsLocating(false);
+        toast.error("Não conseguimos obter sua localização. Autorize o acesso e tente novamente.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const finalizeOrder = async (method: 'pix' | 'money' | 'card', paymentStatus: 'pago' | 'pendente' = 'pendente') => {
     return await createOrderFn({
       data: {
-        customerName: (document.getElementById('customer-name') as HTMLInputElement)?.value || "Cliente Online",
+        customerName: customerName.trim() || "Cliente Online",
+        address: address.trim() || undefined,
+        location: location || undefined,
         items: cart.map(item => ({
           productId: item.product.id,
           name: item.product.name,
@@ -162,26 +190,29 @@ function StoreIndex() {
   };
 
   const handleCheckout = async () => {
+    if (!customerName.trim()) {
+      toast.error("Informe seu nome completo.");
+      return;
+    }
+    if (!address.trim()) {
+      toast.error("Informe o endereço de entrega.");
+      return;
+    }
+
     const received = Number(cashReceived.replace(',', '.'));
     if (paymentMethod === 'money' && (!Number.isFinite(received) || received < cartTotal)) {
       toast.error(`Informe pelo menos R$ ${cartTotal.toFixed(2).replace('.', ',')} em dinheiro.`);
       return;
     }
 
-    const customerName = (document.getElementById('customer-name') as HTMLInputElement)?.value?.trim() || '';
-
     if (paymentMethod === 'pix') {
-      if (!customerName) {
-        toast.error("Informe seu nome para gerar o PIX.");
-        return;
-      }
       setIsProcessingPix(true);
       try {
         const order = await finalizeOrder('pix', 'pendente');
         const payment = await createPixFn({
           data: {
             amount: cartTotal,
-            customerName,
+            customerName: customerName.trim(),
             description: `Pedido #${order?.id ?? ''} - Cia de Condimentos`,
           }
         });
@@ -208,6 +239,7 @@ function StoreIndex() {
     }
   };
 
+
   const copyPixCode = async () => {
     if (!pixData?.qrCode) return;
     try {
@@ -231,35 +263,41 @@ function StoreIndex() {
   }
 
   return (
-    <StoreLayout cartCount={cart.length}>
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12">
+    <StoreLayout
+      cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)}
+      cartTotal={cartTotal}
+      onCartClick={() => cart.length > 0 ? setIsCheckoutOpen(true) : toast.info("Seu carrinho está vazio.")}
+    >
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-12 space-y-8 sm:space-y-12 pb-28 sm:pb-32">
+
       {/* Search and Filters */}
       
 
       {/* Hero */}
-      <section className="relative rounded-[32px] overflow-hidden bg-[#8E1611] min-h-[350px] flex items-center justify-center">
+      <section className="relative rounded-[24px] sm:rounded-[32px] overflow-hidden bg-[#8E1611] min-h-[240px] sm:min-h-[350px] flex items-center justify-center py-10">
         <div className="relative z-10 w-full max-w-4xl px-4 flex flex-col items-center">
-          <div className="flex flex-col items-center space-y-4 mb-8">
-            <h2 className="text-4xl md:text-5xl font-serif text-[#DFB316] leading-tight flex items-center gap-3">
-              <Search className="w-8 h-8 md:w-10 md:h-10" />
+          <div className="flex flex-col items-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 text-center">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[#DFB316] leading-tight flex items-center gap-2 sm:gap-3">
+              <Search className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0" />
               Encontre seu Sabor
             </h2>
-            <p className="text-white text-sm md:text-base font-medium opacity-90">
+            <p className="text-white text-xs sm:text-base font-medium opacity-90">
               Busque pelos condimentos e especiarias que você procura
             </p>
           </div>
           
           <div className="relative w-full max-w-2xl">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E1611]" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E1611]" />
             <input 
               type="text"
               placeholder="Digite o nome do produto..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-16 pr-6 h-16 rounded-full bg-white text-[#8E1611] placeholder-[#8E1611]/50 focus:outline-none focus:ring-4 focus:ring-[#DFB316]/30 transition-all text-lg shadow-2xl"
+              className="w-full pl-13 sm:pl-16 pr-4 sm:pr-6 h-13 sm:h-16 rounded-full bg-white text-[#8E1611] placeholder-[#8E1611]/50 focus:outline-none focus:ring-4 focus:ring-[#DFB316]/30 transition-all text-sm sm:text-lg shadow-2xl"
             />
           </div>
         </div>
+
         
         {/* Pattern Background overlay */}
         <div className="absolute inset-0 opacity-10 pointer-events-none" 
@@ -327,7 +365,7 @@ function StoreIndex() {
       </div>
 
       {/* Products Grid */}
-      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <section className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
         {filteredProducts.map((product: Product) => (
           <ProductCard
             key={product.id}
@@ -346,8 +384,9 @@ function StoreIndex() {
       />
 
       {quantityProduct && (
-        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-sm max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl">
+
             <div className="flex items-center justify-between bg-[#A71A14] px-5 py-4 text-white">
               <h3 className="font-serif text-lg font-bold">Escolher Quantidade</h3>
               <Button variant="ghost" size="icon" onClick={() => setQuantityProduct(null)} className="text-white hover:bg-white/10 hover:text-white">
@@ -375,55 +414,92 @@ function StoreIndex() {
         </div>
       )}
 
-      {/* Cart Modal / Sidebar */}
+      {/* Botão flutuante de finalizar */}
       {isHydrated && cart.length > 0 && (
-        <div className="fixed bottom-8 right-8 z-50">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-8 sm:right-8 z-50">
           <Button 
             onClick={() => setIsCheckoutOpen(true)}
-            className="h-16 px-8 rounded-full bg-[#8E1611] text-white shadow-2xl hover:scale-105 transition-transform flex items-center gap-4 border-2 border-[#DFB316]"
+            className="h-14 sm:h-16 w-full sm:w-auto px-5 sm:px-8 rounded-full bg-[#8E1611] text-white shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-3 sm:gap-4 border-2 border-[#DFB316]"
           >
-            <div className="relative">
+            <div className="relative shrink-0">
               <ShoppingCart className="w-6 h-6" />
               <span className="absolute -top-2 -right-2 bg-[#539D17] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#8E1611]">
                 {cart.length}
               </span>
             </div>
-            <div className="text-left border-l border-white/20 pl-4">
+            <div className="text-left border-l border-white/20 pl-3 sm:pl-4">
               <p className="text-[10px] font-bold text-[#DFB316] uppercase tracking-widest leading-none mb-1">Finalizar</p>
-              <p className="text-lg font-bold leading-none">R$ {cartTotal.toFixed(2)}</p>
+              <p className="text-base sm:text-lg font-bold leading-none">R$ {cartTotal.toFixed(2)}</p>
             </div>
           </Button>
         </div>
       )}
 
+
       {/* Checkout Dialog */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-[#4d3227]/10 flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-bold text-[#4d3227]">Finalizar Compra</h3>
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full max-w-lg max-h-[95dvh] flex flex-col rounded-t-[28px] sm:rounded-[32px] overflow-hidden shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="p-5 sm:p-8 border-b border-[#4d3227]/10 flex justify-between items-center gap-3">
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-[#4d3227]">Finalizar Compra</h3>
                 <p className="text-xs font-bold text-[#539D17] uppercase tracking-widest mt-1">Total: R$ {cartTotal.toFixed(2)}</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsCheckoutOpen(false)} className="rounded-full">
+              <Button variant="ghost" size="icon" onClick={() => setIsCheckoutOpen(false)} className="rounded-full shrink-0">
                 <X className="w-6 h-6" />
               </Button>
             </div>
             
-            <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto">
-              <div className="space-y-4">
-                <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Informações de Contato</p>
+            <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 flex-1 overflow-y-auto">
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Dados para Entrega</p>
                 <input 
                   type="text"
                   placeholder="Seu nome completo"
-                  className="w-full px-4 h-12 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#e8b57d]/20 transition-all text-sm"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full px-4 h-12 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#DFB316]/30 transition-all text-sm"
                   id="customer-name"
                 />
+                <textarea
+                  placeholder="Endereço completo (rua, número, bairro, referência)"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#DFB316]/30 transition-all text-sm resize-none"
+                  id="customer-address"
+                />
+                <Button
+                  type="button"
+                  onClick={requestLocation}
+                  disabled={isLocating}
+                  variant="outline"
+                  className={cn(
+                    "w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest border-2",
+                    location ? "border-[#539D17] text-[#539D17] bg-[#539D17]/5" : "border-[#DFB316] text-[#8E1611]"
+                  )}
+                >
+                  {isLocating
+                    ? <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Obtendo localização...</span>
+                    : location
+                      ? <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Localização anexada</span>
+                      : <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Enviar minha localização</span>}
+                </Button>
+                {location && (
+                  <button
+                    type="button"
+                    onClick={() => setLocation(null)}
+                    className="text-[11px] font-bold uppercase tracking-widest text-[#8E1611]/60 hover:text-[#8E1611]"
+                  >
+                    Remover localização
+                  </button>
+                )}
               </div>
+
 
               <div className="space-y-4">
                 <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Forma de Pagamento</p>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
                   {[
                     { id: 'pix', label: 'PIX', desc: 'Na hora' },
                     { id: 'money', label: 'Dinheiro', desc: 'Entrega' },
@@ -433,7 +509,7 @@ function StoreIndex() {
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id as any)}
                       className={cn(
-                        "p-4 rounded-2xl border-2 transition-all text-left",
+                        "p-3 sm:p-4 rounded-2xl border-2 transition-all text-left",
                         paymentMethod === method.id 
                           ? "border-[#8E1611] bg-[#8E1611]/5" 
                           : "border-[#DFB316]/10 hover:border-[#8E1611]/30"
@@ -474,16 +550,25 @@ function StoreIndex() {
                  <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Resumo do Pedido</p>
                 <div className="space-y-3">
                   {cart.map(item => (
-                    <div key={item.product.id} className="flex justify-between items-center text-sm">
-                      <span className="font-medium text-[#4d3227]">{item.quantity}x {item.product.name}</span>
-                      <span className="font-bold">R$ {(item.product.price * item.quantity).toFixed(2)}</span>
+                    <div key={item.product.id} className="flex justify-between items-center gap-3 text-sm">
+                      <span className="min-w-0 flex-1 truncate font-medium text-[#4d3227]">{item.quantity}x {item.product.name}</span>
+                      <span className="shrink-0 font-bold">R$ {(item.product.price * item.quantity).toFixed(2)}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remover ${item.product.name}`}
+                        onClick={() => removeFromCart(item.product.id)}
+                        className="shrink-0 rounded-lg p-2 text-[#8E1611]/60 hover:bg-[#8E1611]/10 hover:text-[#8E1611]"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-[#4d3227]/5">
+            <div className="p-5 sm:p-8 bg-[#4d3227]/5">
+
               <Button 
                 onClick={handleCheckout}
                 disabled={isProcessingPix}
