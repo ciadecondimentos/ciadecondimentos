@@ -1,73 +1,67 @@
 import { Link } from '@tanstack/react-router';
 import { useHydrated } from "@/hooks/use-hydrated";
-import { ShoppingCart, User, Search, Menu, X, Phone } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { ShoppingCart, Phone } from 'lucide-react';
+import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import logoAsset from "@/assets/logo-transparent.png.asset.json";
 import { Button } from '@/components/ui/button';
 
-export function StoreLayout({ children, cartCount = 0 }: { children: ReactNode; cartCount?: number }) {
+export function StoreLayout({
+  children,
+  cartCount = 0,
+  cartTotal = 0,
+  onCartClick,
+}: {
+  children: ReactNode;
+  cartCount?: number;
+  cartTotal?: number;
+  onCartClick?: () => void;
+}) {
   const isHydrated = useHydrated();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className={cn("store-shell min-h-screen font-['Wix_Madefor_Text']", !isHydrated && "opacity-0 transition-opacity duration-300")}>
       {/* Top Banner */}
-      <div className="bg-[#8E1611] text-[#e8b57d] py-2 px-4 text-center text-[10px] font-bold uppercase tracking-[0.2em]">
+      <div className="bg-[#8E1611] text-[#e8b57d] py-2 px-3 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em]">
         Entregas em toda a região • Qualidade garantida
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#FFF8E7]/80 backdrop-blur-md border-b border-[#DFB316]/20">
-        <div className="max-w-7xl mx-auto px-4 h-24 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-50 bg-[#FFF8E7]/90 backdrop-blur-md border-b border-[#DFB316]/20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-20 sm:h-24 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group relative">
-            <div className="w-24 h-24 flex items-center justify-center group-hover:scale-105 transition-transform z-10">
-              <img src={logoAsset.url} alt="Logo" className="w-full h-full object-contain" />
+          <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3 group">
+            <div className="w-14 h-14 sm:w-20 sm:h-20 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <img src={logoAsset.url} alt="Cia de Condimentos" className="w-full h-full object-contain" />
             </div>
-            <div className="hidden sm:block pt-0">
-              <h1 className="text-xl font-bold text-[#8E1611] leading-tight">Cia de Condimentos</h1>
-              <p className="text-[10px] font-bold text-[#539D17] uppercase tracking-wider">Temperos & Especiarias</p>
+            <div className="min-w-0">
+              <h1 className="truncate text-base sm:text-xl font-bold text-[#8E1611] leading-tight">Cia de Condimentos</h1>
+              <p className="truncate text-[9px] sm:text-[10px] font-bold text-[#539D17] uppercase tracking-wider">Temperos & Especiarias</p>
             </div>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-md relative">
-            <input 
-              type="text" 
-              placeholder="Buscar especiarias..." 
-              className="w-full pl-10 pr-4 py-2 rounded-full border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#e8b57d]/20 transition-all text-sm"
-            />
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" className="text-[#8E1611] rounded-full hover:bg-[#8E1611]/5">
-              <User className="w-5 h-5" />
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="text-[#8E1611] rounded-full hover:bg-[#8E1611]/5 relative">
+          {/* Cart */}
+          <Button
+            onClick={onCartClick}
+            variant="ghost"
+            className="shrink-0 h-11 gap-2 rounded-full px-3 sm:px-4 text-[#8E1611] hover:bg-[#8E1611]/5"
+            aria-label="Abrir carrinho"
+          >
+            <span className="relative">
               <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#539D17] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {isHydrated && cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#539D17] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
-            </Button>
-
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="md:hidden text-[#8E1611] rounded-full hover:bg-[#8E1611]/5"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </Button>
-          </div>
+            </span>
+            {isHydrated && cartCount > 0 && (
+              <span className="hidden sm:block text-sm font-bold">R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+            )}
+          </Button>
         </div>
-
       </header>
+
 
 
       {/* Content */}
