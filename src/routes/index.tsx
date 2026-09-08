@@ -359,7 +359,7 @@ function StoreIndex() {
       </div>
 
       {/* Products Grid */}
-      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <section className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
         {filteredProducts.map((product: Product) => (
           <ProductCard
             key={product.id}
@@ -378,8 +378,9 @@ function StoreIndex() {
       />
 
       {quantityProduct && (
-        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-sm max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl">
+
             <div className="flex items-center justify-between bg-[#A71A14] px-5 py-4 text-white">
               <h3 className="font-serif text-lg font-bold">Escolher Quantidade</h3>
               <Button variant="ghost" size="icon" onClick={() => setQuantityProduct(null)} className="text-white hover:bg-white/10 hover:text-white">
@@ -407,51 +408,88 @@ function StoreIndex() {
         </div>
       )}
 
-      {/* Cart Modal / Sidebar */}
+      {/* Botão flutuante de finalizar */}
       {isHydrated && cart.length > 0 && (
-        <div className="fixed bottom-8 right-8 z-50">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-8 sm:right-8 z-50">
           <Button 
             onClick={() => setIsCheckoutOpen(true)}
-            className="h-16 px-8 rounded-full bg-[#8E1611] text-white shadow-2xl hover:scale-105 transition-transform flex items-center gap-4 border-2 border-[#DFB316]"
+            className="h-14 sm:h-16 w-full sm:w-auto px-5 sm:px-8 rounded-full bg-[#8E1611] text-white shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-3 sm:gap-4 border-2 border-[#DFB316]"
           >
-            <div className="relative">
+            <div className="relative shrink-0">
               <ShoppingCart className="w-6 h-6" />
               <span className="absolute -top-2 -right-2 bg-[#539D17] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#8E1611]">
                 {cart.length}
               </span>
             </div>
-            <div className="text-left border-l border-white/20 pl-4">
+            <div className="text-left border-l border-white/20 pl-3 sm:pl-4">
               <p className="text-[10px] font-bold text-[#DFB316] uppercase tracking-widest leading-none mb-1">Finalizar</p>
-              <p className="text-lg font-bold leading-none">R$ {cartTotal.toFixed(2)}</p>
+              <p className="text-base sm:text-lg font-bold leading-none">R$ {cartTotal.toFixed(2)}</p>
             </div>
           </Button>
         </div>
       )}
 
+
       {/* Checkout Dialog */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-[#4d3227]/10 flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-bold text-[#4d3227]">Finalizar Compra</h3>
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full max-w-lg max-h-[95dvh] flex flex-col rounded-t-[28px] sm:rounded-[32px] overflow-hidden shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="p-5 sm:p-8 border-b border-[#4d3227]/10 flex justify-between items-center gap-3">
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-[#4d3227]">Finalizar Compra</h3>
                 <p className="text-xs font-bold text-[#539D17] uppercase tracking-widest mt-1">Total: R$ {cartTotal.toFixed(2)}</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsCheckoutOpen(false)} className="rounded-full">
+              <Button variant="ghost" size="icon" onClick={() => setIsCheckoutOpen(false)} className="rounded-full shrink-0">
                 <X className="w-6 h-6" />
               </Button>
             </div>
             
-            <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto">
-              <div className="space-y-4">
-                <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Informações de Contato</p>
+            <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 flex-1 overflow-y-auto">
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Dados para Entrega</p>
                 <input 
                   type="text"
                   placeholder="Seu nome completo"
-                  className="w-full px-4 h-12 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#e8b57d]/20 transition-all text-sm"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full px-4 h-12 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#DFB316]/30 transition-all text-sm"
                   id="customer-name"
                 />
+                <textarea
+                  placeholder="Endereço completo (rua, número, bairro, referência)"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#DFB316]/30 transition-all text-sm resize-none"
+                  id="customer-address"
+                />
+                <Button
+                  type="button"
+                  onClick={requestLocation}
+                  disabled={isLocating}
+                  variant="outline"
+                  className={cn(
+                    "w-full h-12 rounded-xl font-bold text-xs uppercase tracking-widest border-2",
+                    location ? "border-[#539D17] text-[#539D17] bg-[#539D17]/5" : "border-[#DFB316] text-[#8E1611]"
+                  )}
+                >
+                  {isLocating
+                    ? <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Obtendo localização...</span>
+                    : location
+                      ? <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Localização anexada</span>
+                      : <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Enviar minha localização</span>}
+                </Button>
+                {location && (
+                  <button
+                    type="button"
+                    onClick={() => setLocation(null)}
+                    className="text-[11px] font-bold uppercase tracking-widest text-[#8E1611]/60 hover:text-[#8E1611]"
+                  >
+                    Remover localização
+                  </button>
+                )}
               </div>
+
 
               <div className="space-y-4">
                 <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Forma de Pagamento</p>
