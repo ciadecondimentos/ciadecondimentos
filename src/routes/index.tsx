@@ -263,35 +263,41 @@ function StoreIndex() {
   }
 
   return (
-    <StoreLayout cartCount={cart.length}>
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12">
+    <StoreLayout
+      cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)}
+      cartTotal={cartTotal}
+      onCartClick={() => cart.length > 0 ? setIsCheckoutOpen(true) : toast.info("Seu carrinho está vazio.")}
+    >
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-12 space-y-8 sm:space-y-12 pb-28 sm:pb-32">
+
       {/* Search and Filters */}
       
 
       {/* Hero */}
-      <section className="relative rounded-[32px] overflow-hidden bg-[#8E1611] min-h-[350px] flex items-center justify-center">
+      <section className="relative rounded-[24px] sm:rounded-[32px] overflow-hidden bg-[#8E1611] min-h-[240px] sm:min-h-[350px] flex items-center justify-center py-10">
         <div className="relative z-10 w-full max-w-4xl px-4 flex flex-col items-center">
-          <div className="flex flex-col items-center space-y-4 mb-8">
-            <h2 className="text-4xl md:text-5xl font-serif text-[#DFB316] leading-tight flex items-center gap-3">
-              <Search className="w-8 h-8 md:w-10 md:h-10" />
+          <div className="flex flex-col items-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 text-center">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[#DFB316] leading-tight flex items-center gap-2 sm:gap-3">
+              <Search className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0" />
               Encontre seu Sabor
             </h2>
-            <p className="text-white text-sm md:text-base font-medium opacity-90">
+            <p className="text-white text-xs sm:text-base font-medium opacity-90">
               Busque pelos condimentos e especiarias que você procura
             </p>
           </div>
           
           <div className="relative w-full max-w-2xl">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E1611]" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E1611]" />
             <input 
               type="text"
               placeholder="Digite o nome do produto..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-16 pr-6 h-16 rounded-full bg-white text-[#8E1611] placeholder-[#8E1611]/50 focus:outline-none focus:ring-4 focus:ring-[#DFB316]/30 transition-all text-lg shadow-2xl"
+              className="w-full pl-13 sm:pl-16 pr-4 sm:pr-6 h-13 sm:h-16 rounded-full bg-white text-[#8E1611] placeholder-[#8E1611]/50 focus:outline-none focus:ring-4 focus:ring-[#DFB316]/30 transition-all text-sm sm:text-lg shadow-2xl"
             />
           </div>
         </div>
+
         
         {/* Pattern Background overlay */}
         <div className="absolute inset-0 opacity-10 pointer-events-none" 
@@ -493,7 +499,7 @@ function StoreIndex() {
 
               <div className="space-y-4">
                 <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Forma de Pagamento</p>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
                   {[
                     { id: 'pix', label: 'PIX', desc: 'Na hora' },
                     { id: 'money', label: 'Dinheiro', desc: 'Entrega' },
@@ -503,7 +509,7 @@ function StoreIndex() {
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id as any)}
                       className={cn(
-                        "p-4 rounded-2xl border-2 transition-all text-left",
+                        "p-3 sm:p-4 rounded-2xl border-2 transition-all text-left",
                         paymentMethod === method.id 
                           ? "border-[#8E1611] bg-[#8E1611]/5" 
                           : "border-[#DFB316]/10 hover:border-[#8E1611]/30"
@@ -544,16 +550,25 @@ function StoreIndex() {
                  <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Resumo do Pedido</p>
                 <div className="space-y-3">
                   {cart.map(item => (
-                    <div key={item.product.id} className="flex justify-between items-center text-sm">
-                      <span className="font-medium text-[#4d3227]">{item.quantity}x {item.product.name}</span>
-                      <span className="font-bold">R$ {(item.product.price * item.quantity).toFixed(2)}</span>
+                    <div key={item.product.id} className="flex justify-between items-center gap-3 text-sm">
+                      <span className="min-w-0 flex-1 truncate font-medium text-[#4d3227]">{item.quantity}x {item.product.name}</span>
+                      <span className="shrink-0 font-bold">R$ {(item.product.price * item.quantity).toFixed(2)}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remover ${item.product.name}`}
+                        onClick={() => removeFromCart(item.product.id)}
+                        className="shrink-0 rounded-lg p-2 text-[#8E1611]/60 hover:bg-[#8E1611]/10 hover:text-[#8E1611]"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-[#4d3227]/5">
+            <div className="p-5 sm:p-8 bg-[#4d3227]/5">
+
               <Button 
                 onClick={handleCheckout}
                 disabled={isProcessingPix}
