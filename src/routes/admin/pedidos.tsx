@@ -11,6 +11,7 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getOrders } from "@/lib/orders.functions";
@@ -133,13 +134,14 @@ function PedidosPage() {
                   <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Pagamento</th>
                   <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Status Pgto</th>
                   <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Status Pedido</th>
+                  <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Entrega</th>
                   <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-[0.2em]">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {orders.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-10 text-center text-muted-foreground font-bold">
+                    <td colSpan={9} className="px-6 py-10 text-center text-muted-foreground font-bold">
                       Nenhum pedido encontrado.
                     </td>
                   </tr>
@@ -182,6 +184,25 @@ function PedidosPage() {
                         )}>
                           {order.order_status}
                         </span>
+                      </td>
+                      <td className="px-6 py-5 max-w-[240px]">
+                        {order.address ? (
+                          <span className="block text-xs font-medium text-foreground/80 truncate" title={order.address}>
+                            {order.address}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                        {order.location && (
+                          <a
+                            href={order.location}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                          >
+                            <MapPin className="w-3 h-3" /> Ver localização
+                          </a>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
