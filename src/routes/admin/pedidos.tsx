@@ -140,7 +140,7 @@ function PedidosPage() {
               <tbody className="divide-y divide-border/50">
                 {orders.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-10 text-center text-muted-foreground font-bold">
+                    <td colSpan={9} className="px-6 py-10 text-center text-muted-foreground font-bold">
                       Nenhum pedido encontrado.
                     </td>
                   </tr>
