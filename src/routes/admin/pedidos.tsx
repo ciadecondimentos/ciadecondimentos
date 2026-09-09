@@ -133,6 +133,7 @@ function PedidosPage() {
                   <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Pagamento</th>
                   <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Status Pgto</th>
                   <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Status Pedido</th>
+                  <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em]">Entrega</th>
                   <th className="px-6 py-5 text-right text-[10px] font-black uppercase tracking-[0.2em]">Ações</th>
                 </tr>
               </thead>
