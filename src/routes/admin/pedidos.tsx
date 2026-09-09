@@ -11,6 +11,7 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getOrders } from "@/lib/orders.functions";
