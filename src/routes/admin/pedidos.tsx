@@ -184,6 +184,25 @@ function PedidosPage() {
                           {order.order_status}
                         </span>
                       </td>
+                      <td className="px-6 py-5 max-w-[240px]">
+                        {order.address ? (
+                          <span className="block text-xs font-medium text-foreground/80 truncate" title={order.address}>
+                            {order.address}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                        {order.location && (
+                          <a
+                            href={order.location}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                          >
+                            <MapPin className="w-3 h-3" /> Ver localização
+                          </a>
+                        )}
+                      </td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all">
