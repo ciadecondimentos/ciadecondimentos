@@ -365,7 +365,7 @@ function StoreIndex() {
       </div>
 
       {/* Products Grid */}
-      <section className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6 lg:gap-8">
         {filteredProducts.map((product: Product) => (
           <ProductCard
             key={product.id}
@@ -662,35 +662,35 @@ function ProductCard({ product, onClick, onAdd }: { product: Product, onClick: (
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') onClick();
       }}
-      className="group bg-white rounded-2xl shadow-sm border border-[#DFB316]/10 overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+      className="group min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-sm border border-[#DFB316]/10 overflow-hidden flex flex-col transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer"
     >
-      <div className="aspect-[4/5] bg-[#F5F5F5] relative overflow-hidden">
+      <div className="aspect-square sm:aspect-[4/5] bg-[#F5F5F5] relative overflow-hidden">
         {product.image ? (
           <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#8E1611]/10">
-            <ShoppingCart className="w-16 h-16" />
+            <ShoppingCart className="w-10 h-10 sm:w-16 sm:h-16" />
           </div>
         )}
-        <div className="absolute bottom-4 right-4 w-10 h-10 bg-[#DFB316] text-[#4d3227] rounded-full flex items-center justify-center text-[10px] font-bold shadow-md">
+        <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 bg-[#DFB316] text-[#4d3227] rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold shadow-md">
           {product.sale_unit?.toUpperCase() || 'UN'}
         </div>
       </div>
       
-      <div className="p-5 flex flex-col flex-1 space-y-3">
+      <div className="p-2.5 sm:p-5 flex flex-col flex-1 space-y-2 sm:space-y-3">
         <div className="space-y-1">
-          <p className="text-[10px] font-bold text-[#DFB316] uppercase tracking-widest">{product.category || 'Temperos'}</p>
-          <h4 className="font-bold text-[#2D2D2D] text-lg leading-tight line-clamp-2">{product.name}</h4>
+          <p className="truncate text-[8px] sm:text-[10px] font-bold text-[#DFB316] uppercase tracking-widest">{product.category || 'Temperos'}</p>
+          <h4 className="font-bold text-[#2D2D2D] text-sm sm:text-lg leading-tight line-clamp-2">{product.name}</h4>
         </div>
         
         {product.description && (
-          <p className="text-[10px] text-[#666666] line-clamp-1 italic">{product.description}</p>
+          <p className="hidden sm:block text-[10px] text-[#666666] line-clamp-1 italic">{product.description}</p>
         )}
         
-        <div className="pt-2 mt-auto flex items-center justify-between border-t border-[#DFB316]/5">
+        <div className="pt-2 mt-auto flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-[#DFB316]/5">
           <div className="space-y-0.5">
             <p className="text-[9px] font-bold text-[#666666] uppercase tracking-widest">R$</p>
-            <p className="text-2xl font-black text-[#8E1611] leading-none">
+            <p className="text-lg sm:text-2xl font-black text-[#8E1611] leading-none">
               {Number(product.price).toFixed(2)}
             </p>
           </div>
@@ -699,7 +699,7 @@ function ProductCard({ product, onClick, onAdd }: { product: Product, onClick: (
               event.stopPropagation();
               onAdd();
             }}
-            className="h-10 px-6 rounded-lg bg-[#8E1611] hover:bg-[#A71A14] text-white font-bold uppercase tracking-widest text-[10px] transition-all"
+            className="h-9 w-full px-2 sm:h-10 sm:w-auto sm:px-6 rounded-lg bg-[#8E1611] hover:bg-[#A71A14] text-white font-bold uppercase tracking-widest text-[8px] sm:text-[10px] transition-all"
           >
             Adicionar
           </Button>
