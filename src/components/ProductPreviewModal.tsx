@@ -29,7 +29,7 @@ export function ProductPreviewModal({ product, open, onOpenChange, onAdd }: Prod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-3xl flex-col overflow-hidden rounded-2xl border-border bg-card p-0 gap-0 shadow-2xl md:flex-row md:max-h-[min(760px,calc(100dvh-2rem))]">
+      <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-3xl flex-col overflow-hidden rounded-2xl border-border bg-card p-0 gap-0 shadow-2xl md:max-h-[min(760px,calc(100dvh-2rem))]">
         {/* Banner de Status */}
         <div className={`h-2 w-full ${status === 'Em Estoque' ? 'bg-success' : status === 'Baixo Estoque' ? 'bg-secondary' : 'bg-primary'}`} />
         
