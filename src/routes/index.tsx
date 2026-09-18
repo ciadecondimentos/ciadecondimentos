@@ -196,6 +196,10 @@ function StoreIndex() {
       toast.error("Informe seu nome completo.");
       return;
     }
+    if (customerPhone.replace(/\D/g, '').length < 10) {
+      toast.error("Informe um telefone válido com DDD.");
+      return;
+    }
     if (!address.trim()) {
       toast.error("Informe o endereço de entrega.");
       return;
