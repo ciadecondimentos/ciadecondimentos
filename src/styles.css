@@ -159,3 +159,32 @@ div[style*="Edit with Lovable"],
   position: absolute !important;
   z-index: -9999 !important;
 }
+
+/* Barra de rolagem elegante (menu lateral e áreas roláveis) */
+.no-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(232, 181, 125, 0.35) transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.no-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(232, 181, 125, 0.3);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.no-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(232, 181, 125, 0.6);
+}
+
+.no-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
