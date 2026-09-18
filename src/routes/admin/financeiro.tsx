@@ -216,10 +216,11 @@ function FinanceiroPage() {
 
   const openEditModal = (t: any) => {
     setEditingId(t.id);
+    setEditingTransaction(t);
     setModalType(t.type === 'Saída' ? 'Saída' : 'Entrada');
     reset({
       type: t.type,
-      date: t.date ? new Date(t.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: t.rawDate || new Date().toISOString().split('T')[0],
       category: t.category || '',
       description: t.description || '',
       value: String(t.value ?? ''),
