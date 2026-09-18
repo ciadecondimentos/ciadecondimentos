@@ -350,6 +350,38 @@ function FinanceiroPage() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
+  // Mesmos dados, formatados como velas: corpo = 0 -> lucro, pavio = -saídas -> entradas.
+  const candleData = useMemo(() => {
+    return (chartData || []).map((d: any) => ({
+      date: d.date,
+      entradas: d.entradas,
+      saidas: d.saidas,
+      lucro: d.lucro,
+      corpo: [0, d.lucro] as [number, number],
+      pavio: [-d.saidas, d.entradas] as [number, number],
+    }));
+  }, [chartData]);
+
+  const chartTypes = [
+    { key: 'area' as const, label: 'Área', icon: AreaChartIcon },
+    { key: 'line' as const, label: 'Linha', icon: LineChartIcon },
+    { key: 'candle' as const, label: 'Vela', icon: CandlestickChart },
+  ];
+
+  const axisProps = {
+    tooltip: (
+      <Tooltip
+        contentStyle={{
+          backgroundColor: 'var(--card)',
+          borderRadius: '16px',
+          border: '1px solid var(--border)',
+          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+        }}
+        labelStyle={{ fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}
+      />
+    ),
+  };
+
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
