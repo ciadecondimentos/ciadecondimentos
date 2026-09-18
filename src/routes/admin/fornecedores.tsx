@@ -221,13 +221,13 @@ function FornecedoresPage() {
   ];
 
   const handleExportCsv = () => {
-    if (filtered.length === 0) return toast.error("Nenhum fornecedor para exportar.");
+    if (filtered.length === 0) { toast.error("Nenhum fornecedor para exportar."); return; }
     exportToCsv("fornecedores", supplierColumns, filtered);
     toast.success("CSV exportado com sucesso!");
   };
 
   const handleExportPdf = () => {
-    if (filtered.length === 0) return toast.error("Nenhum fornecedor para exportar.");
+    if (filtered.length === 0) { toast.error("Nenhum fornecedor para exportar."); return; }
     const ok = exportToPdf("Fornecedores", supplierColumns, filtered);
     if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
   };
@@ -256,19 +256,19 @@ function FornecedoresPage() {
   };
 
   const submitForm = () => {
-    if (!form.company_name.trim()) return toast.error("Informe o nome da empresa.");
+    if (!form.company_name.trim()) { toast.error("Informe o nome da empresa."); return; }
     saveMutation.mutate(form);
   };
 
   const submitPurchase = () => {
     if (!detail) return;
-    if (!purchaseForm.product_name.trim()) return toast.error("Informe o produto.");
+    if (!purchaseForm.product_name.trim()) { toast.error("Informe o produto."); return; }
     const qty = Number(purchaseForm.quantity) || 1;
     const unit = Number(purchaseForm.unit_price.replace(",", ".")) || 0;
     const total = purchaseForm.total_price
       ? Number(purchaseForm.total_price.replace(",", ".")) || qty * unit
       : qty * unit;
-    if (total <= 0) return toast.error("Informe um valor válido.");
+    if (total <= 0) { toast.error("Informe um valor válido."); return; }
     purchaseMutation.mutate({
       supplier_id: detail.id,
       product_name: purchaseForm.product_name,
