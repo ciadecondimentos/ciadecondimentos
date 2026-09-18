@@ -193,7 +193,7 @@ function PedidosPage() {
                     </td>
                   </tr>
                 ) : (
-                  orders.map((order) => (
+                  filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-muted/30 transition-colors group">
                       <td className="px-6 py-5">
                         <span className="font-bold text-primary">#{order.id}</span>
