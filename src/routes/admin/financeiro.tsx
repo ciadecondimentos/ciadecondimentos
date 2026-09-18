@@ -115,6 +115,7 @@ function FinanceiroPage() {
 
   const [modalType, setModalType] = useState<'Entrada' | 'Saída'>('Entrada');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -235,7 +236,16 @@ function FinanceiroPage() {
   };
 
   const onSubmit = (data: any) => {
-    if (editingId) {
+    if (editingId && editingTransaction?.source === 'purchase') {
+      const purchaseIds: number[] = editingTransaction.purchaseIds?.length
+        ? editingTransaction.purchaseIds
+        : [Number(editingTransaction.realId)];
+      updatePurchaseMutation.mutate({
+        purchaseIds,
+        date: data.date,
+        value: Number(data.value),
+      });
+    } else if (editingId) {
       updateMutation.mutate({ ...data, id: editingId });
     } else {
       createMutation.mutate(data);
