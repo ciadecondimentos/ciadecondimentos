@@ -117,11 +117,11 @@ function RelatoriosPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-secondary/10">
+            <button onClick={handleExportCsv} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-secondary/10">
               <Download className="w-4 h-4" />
               <span>CSV</span>
             </button>
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-primary/20">
+            <button onClick={handleExportPdf} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-primary/20">
               <Download className="w-4 h-4" />
               <span>PDF</span>
             </button>
