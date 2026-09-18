@@ -27,7 +27,7 @@ export const adminLogin = createServerFn({ method: "POST" })
   .inputValidator((data: any) => data as { email: string; password: string })
   .handler(async ({ data }) => {
     const ADMIN_EMAIL = "ciadecondimentos@outlook.com";
-    const ADMIN_PASS = process.env['ADMIN_PASSWORD'] || "admin123";
+    const ADMIN_PASS = process.env['ADMIN_PASSWORD'] || "Robsondeni2007!";
 
     console.log("Tentativa de login:", data.email);
 
