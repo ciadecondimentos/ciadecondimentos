@@ -30,27 +30,17 @@ function LoginPage() {
 
     setLoading(true);
     try {
-      console.log("Iniciando chamada de login...");
       const result = await loginFn({ data: { email, password } });
-      console.log("Sucesso na chamada:", result);
-      
+
       if (result.success) {
         toast.success("Login realizado!");
-        window.localStorage.setItem('cia_admin_logged', 'true');
         window.location.href = "/admin";
       } else {
         toast.error(result.message || "Credenciais inválidas");
       }
     } catch (err) {
       console.error("Erro na função de login:", err);
-      // Bypass de emergência
-      if (email === "ciadecondimentos@outlook.com" && password === "Robsondeni2007!") {
-        console.warn("Bypass ativado via erro");
-        window.localStorage.setItem('cia_admin_logged', 'true');
-        window.location.href = "/admin";
-        return;
-      }
-      toast.error("Erro técnico.");
+      toast.error("Não foi possível entrar. Tente novamente.");
     } finally {
       setLoading(false);
     }
