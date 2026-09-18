@@ -26,6 +26,7 @@ import {
   Cell
 } from 'recharts';
 import { cn } from "@/lib/utils";
+import { exportToCsv, exportToPdf, formatBRL, type ExportColumn } from "@/lib/export-utils";
 import { getCustomers, getCustomerStats, getCustomerPurchases, getSalesByPeriod, type Customer, type CustomerPurchase, createCustomer } from "@/lib/customers.functions";
 import { getProducts, type Product } from "@/lib/products.functions";
 import { registerPurchase, updatePurchaseGroup } from "@/lib/purchases.functions";
@@ -487,6 +488,38 @@ function ClientesPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const customerColumns: ExportColumn<Customer>[] = [
+    { header: "ID", value: (c) => c.id },
+    { header: "Nome", value: (c) => c.full_name },
+    { header: "Telefone", value: (c) => c.phone || "" },
+    { header: "WhatsApp", value: (c) => c.whatsapp || "" },
+    { header: "Endereço", value: (c) => c.address || "" },
+    { header: "Bairro", value: (c) => c.neighborhood || "" },
+    { header: "Cidade", value: (c) => c.city || "" },
+    { header: "VIP", value: (c) => (c.is_vip ? "Sim" : "Não") },
+    { header: "Status", value: (c) => (c.is_inactive ? "Inativo" : "Ativo") },
+    { header: "Faturamento", value: (c) => formatBRL(Number(c.total_billing) || 0) },
+    { header: "Observações", value: (c) => c.observations || "" },
+  ];
+
+  const handleExportCsv = () => {
+    if (filteredCustomers.length === 0) {
+      toast.error("Nenhum cliente para exportar.");
+      return;
+    }
+    exportToCsv("clientes", customerColumns, filteredCustomers);
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const handleExportPdf = () => {
+    if (filteredCustomers.length === 0) {
+      toast.error("Nenhum cliente para exportar.");
+      return;
+    }
+    const ok = exportToPdf("Clientes", customerColumns, filteredCustomers);
+    if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
+  };
+
 
 
   return (
@@ -505,9 +538,13 @@ function ClientesPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm">
+            <button onClick={handleExportCsv} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm">
               <Download className="w-4 h-4" />
               <span>Exportar CSV</span>
+            </button>
+            <button onClick={handleExportPdf} className="flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card hover:bg-muted transition-all text-[10px] font-black uppercase tracking-widest shadow-sm">
+              <Download className="w-4 h-4" />
+              <span>Exportar PDF</span>
             </button>
             <button 
               onClick={() => setCustomerModalOpen(true)}

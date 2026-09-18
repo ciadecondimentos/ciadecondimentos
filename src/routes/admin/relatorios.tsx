@@ -9,6 +9,8 @@ import {
   Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { exportToCsv, exportToPdf, formatBRL as fmtBRL, type ExportColumn } from "@/lib/export-utils";
 import { Sidebar } from "@/components/Sidebar";
 import { Navbar } from "@/components/Navbar";
 import { useQuery } from "@tanstack/react-query";
@@ -98,6 +100,37 @@ function RelatoriosPage() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
+  type ReportRow = { date: string; customer: string; items: number; total: number; status: string };
+  const reportColumns: ExportColumn<ReportRow>[] = [
+    { header: "Data", value: (o) => o.date },
+    { header: "Cliente", value: (o) => o.customer },
+    { header: "Itens", value: (o) => o.items },
+    { header: "Total", value: (o) => fmtBRL(Number(o.total) || 0) },
+    { header: "Status", value: (o) => o.status },
+  ];
+
+  const reportRows: ReportRow[] = (orders ?? []) as ReportRow[];
+  const reportSubtitle = () =>
+    `Pedidos: ${summary?.totalOrders ?? 0} | Faturamento: ${fmtBRL(summary?.totalRevenue ?? 0)} | Clientes: ${summary?.totalCustomers ?? 0} | Produtos: ${summary?.totalProducts ?? 0} — `;
+
+  const handleExportCsv = () => {
+    if (reportRows.length === 0) {
+      toast.error("Nenhum dado para exportar.");
+      return;
+    }
+    exportToCsv("relatorio", reportColumns, reportRows);
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const handleExportPdf = () => {
+    if (reportRows.length === 0) {
+      toast.error("Nenhum dado para exportar.");
+      return;
+    }
+    const ok = exportToPdf("Relatório de Pedidos", reportColumns, reportRows, reportSubtitle());
+    if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
+  };
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar currentPath="/admin/relatorios" />
@@ -115,11 +148,11 @@ function RelatoriosPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-secondary/10">
+            <button onClick={handleExportCsv} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-secondary/10">
               <Download className="w-4 h-4" />
               <span>CSV</span>
             </button>
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-primary/20">
+            <button onClick={handleExportPdf} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md shadow-primary/20">
               <Download className="w-4 h-4" />
               <span>PDF</span>
             </button>

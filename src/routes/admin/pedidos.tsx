@@ -14,6 +14,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { exportToCsv, exportToPdf, formatBRL, type ExportColumn } from "@/lib/export-utils";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getOrders, setOrderPaymentStatus, deleteOrder, type Order } from "@/lib/orders.functions";
@@ -70,6 +71,36 @@ function PedidosPage() {
       return matchesTerm && matchesStatus;
     });
   }, [orders, search, statusFilter]);
+
+  const orderColumns: ExportColumn<Order>[] = [
+    { header: "Pedido", value: (o) => `#${o.id}` },
+    { header: "Cliente", value: (o) => o.client },
+    { header: "Data", value: (o) => o.date },
+    { header: "Total", value: (o) => formatBRL(Number(o.total) || 0) },
+    { header: "Pagamento", value: (o) => o.payment },
+    { header: "Status Pagamento", value: (o) => o.payment_status },
+    { header: "Status Pedido", value: (o) => o.order_status },
+    { header: "Itens", value: (o) => (Array.isArray(o.items) ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(" | ") : String(o.items ?? "")) },
+    { header: "Entrega", value: (o) => o.address || "" },
+  ];
+
+  const handleExportCsv = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("Nenhum pedido para exportar.");
+      return;
+    }
+    exportToCsv("pedidos", orderColumns, filteredOrders);
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const handleExportPdf = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("Nenhum pedido para exportar.");
+      return;
+    }
+    const ok = exportToPdf("Pedidos", orderColumns, filteredOrders);
+    if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
+  };
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -161,9 +192,13 @@ function PedidosPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full xl:w-auto">
-            <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
+            <button onClick={handleExportCsv} className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
               <Download className="w-4 h-4" />
               <span>Exportar CSV</span>
+            </button>
+            <button onClick={handleExportPdf} className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
+              <Download className="w-4 h-4" />
+              <span>Exportar PDF</span>
             </button>
           </div>
         </div>
