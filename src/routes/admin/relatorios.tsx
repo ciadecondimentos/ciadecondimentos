@@ -13,7 +13,19 @@ import { Sidebar } from "@/components/Sidebar";
 import { Navbar } from "@/components/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getReportsSummary, getOrdersSummaryTable } from "@/lib/reports.functions";
+import { getReportsSummary, getOrdersSummaryTable, getReportsCharts } from "@/lib/reports.functions";
+import { useState } from "react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 
 
 export const Route = createFileRoute("/admin/relatorios")({
