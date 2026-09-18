@@ -80,7 +80,7 @@ function PedidosPage() {
     { header: "Pagamento", value: (o) => o.payment },
     { header: "Status Pagamento", value: (o) => o.payment_status },
     { header: "Status Pedido", value: (o) => o.order_status },
-    { header: "Itens", value: (o) => (o.items || []).map((i: any) => `${i.quantity}x ${i.name}`).join(" | ") },
+    { header: "Itens", value: (o) => (Array.isArray(o.items) ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(" | ") : String(o.items ?? "")) },
     { header: "Entrega", value: (o) => o.address || "" },
   ];
 
