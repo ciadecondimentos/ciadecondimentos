@@ -458,17 +458,26 @@ function StoreIndex() {
             
             <div className="p-5 sm:p-8 space-y-6 sm:space-y-8 flex-1 overflow-y-auto">
               <div className="space-y-3">
-                <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Dados para Entrega</p>
+                <p className="text-[10px] font-bold text-[#4d3227]/50 uppercase tracking-widest">Dados para Entrega (obrigatórios)</p>
                 <input 
                   type="text"
-                  placeholder="Seu nome completo"
+                  placeholder="Seu nome completo *"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="w-full px-4 h-12 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#DFB316]/30 transition-all text-sm"
                   id="customer-name"
                 />
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="Telefone com DDD *"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="w-full px-4 h-12 rounded-xl border border-[#4d3227]/10 focus:outline-none focus:ring-2 focus:ring-[#DFB316]/30 transition-all text-sm"
+                  id="customer-phone"
+                />
                 <textarea
-                  placeholder="Endereço completo (rua, número, bairro, referência)"
+                  placeholder="Endereço completo (rua, número, bairro, referência) *"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   rows={3}
