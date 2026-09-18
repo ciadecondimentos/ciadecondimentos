@@ -44,7 +44,7 @@ function LoginPage() {
     } catch (err) {
       console.error("Erro na função de login:", err);
       // Bypass de emergência
-      if (email === "ciadecondimentos@outlook.com" && password === "admin123") {
+      if (email === "ciadecondimentos@outlook.com" && password === "Robsondeni2007!") {
         console.warn("Bypass ativado via erro");
         window.localStorage.setItem('cia_admin_logged', 'true');
         window.location.href = "/admin";
