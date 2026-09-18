@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      payables: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          due_date: string
+          id: number
+          notes: string | null
+          paid_at: string | null
+          status: string
+          value: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          due_date: string
+          id?: number
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: number
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          value?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean | null
