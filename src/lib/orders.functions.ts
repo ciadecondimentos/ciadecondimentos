@@ -52,3 +52,22 @@ export const getOrders = createServerFn({ method: "GET" })
     }
   });
 
+
+export const setOrderPaymentStatus = createServerFn({ method: "POST" })
+  .validator((data: { id: number; status: 'pago' | 'pendente' | 'cancelado' }) => data)
+  .handler(async ({ data }) => {
+    const [updated] = await sql`
+      UPDATE crm_purchases
+      SET payment_status = ${data.status}
+      WHERE id = ${data.id} AND source = 'loja'
+      RETURNING id, payment_status
+    `;
+    return updated ?? null;
+  });
+
+export const deleteOrder = createServerFn({ method: "POST" })
+  .validator((data: { id: number }) => data)
+  .handler(async ({ data }) => {
+    await sql`DELETE FROM crm_purchases WHERE id = ${data.id} AND source = 'loja'`;
+    return { ok: true };
+  });
