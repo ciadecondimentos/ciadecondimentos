@@ -8,7 +8,7 @@ import {
   Trash2, 
   Filter, 
   Eye, 
-  Edit,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   MapPin,
