@@ -51,6 +51,10 @@ import {
   Legend,
   AreaChart,
   Area,
+  LineChart,
+  Line,
+  ComposedChart,
+  Cell,
 } from "recharts";
 
 
