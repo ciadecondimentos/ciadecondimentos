@@ -364,5 +364,13 @@ export const updatePurchaseEntry = createServerFn({ method: "POST" })
       `;
     }
 
+    // A descrição da entrada é o nome do cliente da venda.
+    const name = data.description?.trim();
+    if (name && rows[0]) {
+      await sql`
+        UPDATE public.crm_customers SET full_name = ${name} WHERE id = ${rows[0].customer_id}
+      `;
+    }
+
     return { success: rows.length > 0 };
   });
