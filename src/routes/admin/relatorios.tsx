@@ -84,6 +84,16 @@ function RelatoriosPage() {
     queryFn: () => fetchOrders(),
   });
 
+  const fetchCharts = useServerFn(getReportsCharts);
+  const { data: charts } = useQuery({
+    queryKey: ['reports-charts'],
+    queryFn: () => fetchCharts(),
+  });
+  const [period, setPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
+
+  const periodData = charts?.[period] ?? [];
+  const periodTotal = periodData.reduce((acc: number, d: any) => acc + (d.total || 0), 0);
+
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
