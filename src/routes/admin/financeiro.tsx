@@ -318,6 +318,60 @@ function FinanceiroPage() {
           </div>
         </div>
 
+        {/* Filter Bar */}
+        <div className="bg-card border border-border rounded-[24px] p-4 flex flex-col xl:flex-row gap-4 items-center shadow-sm">
+           <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
+              <input 
+                type="date" 
+                value={filters.dateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+              />
+              <input 
+                type="date" 
+                value={filters.dateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+              />
+              <select 
+                value={filters.type}
+                onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
+              >
+                 <option>Todos os Tipos</option>
+                 <option>Entrada</option>
+                 <option>Saída</option>
+              </select>
+              <select 
+                value={filters.category}
+                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
+              >
+                 <option>Todas as Categorias</option>
+                 <option>Vendas</option>
+                 <option>Despesas</option>
+                 <option>Outros</option>
+              </select>
+           </div>
+
+           <div className="flex gap-3 w-full xl:w-auto">
+              <button 
+                onClick={() => handleRefresh()}
+                className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
+              >
+                <Search className="w-4 h-4" />
+                <span>Filtrar</span>
+              </button>
+              <button 
+                onClick={() => setFilters({ dateFrom: '', dateTo: '', type: 'Todos os Tipos', category: 'Todas as Categorias' })}
+                className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-xl border border-border bg-card hover:bg-muted transition-all text-[10px] font-black uppercase tracking-widest"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Limpar</span>
+              </button>
+           </div>
+        </div>
+
         {/* Cash Flow Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <CashFlowCard 
@@ -436,60 +490,6 @@ function FinanceiroPage() {
           </div>
         </div>
 
-        {/* Filter Bar */}
-
-        <div className="bg-card border border-border rounded-[24px] p-4 flex flex-col xl:flex-row gap-4 items-center shadow-sm">
-           <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
-              <input 
-                type="date" 
-                value={filters.dateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
-              />
-              <input 
-                type="date" 
-                value={filters.dateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
-              />
-              <select 
-                value={filters.type}
-                onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
-              >
-                 <option>Todos os Tipos</option>
-                 <option>Entrada</option>
-                 <option>Saída</option>
-              </select>
-              <select 
-                value={filters.category}
-                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
-              >
-                 <option>Todas as Categorias</option>
-                 <option>Vendas</option>
-                 <option>Despesas</option>
-                 <option>Outros</option>
-              </select>
-           </div>
-           
-           <div className="flex gap-3 w-full xl:w-auto">
-              <button 
-                onClick={() => handleRefresh()}
-                className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
-              >
-                <Search className="w-4 h-4" />
-                <span>Filtrar</span>
-              </button>
-              <button 
-                onClick={() => setFilters({ dateFrom: '', dateTo: '', type: 'Todos os Tipos', category: 'Todas as Categorias' })}
-                className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-xl border border-border bg-card hover:bg-muted transition-all text-[10px] font-black uppercase tracking-widest"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Limpar</span>
-              </button>
-           </div>
-        </div>
 
 
         {/* Transactions Table */}
