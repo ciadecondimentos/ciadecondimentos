@@ -287,7 +287,7 @@ function PedidosPage() {
           
           {/* Pagination */}
           <div className="px-6 py-5 bg-muted/10 border-t border-border flex items-center justify-between">
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Exibindo {orders.length} pedidos</span>
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Exibindo {filteredOrders.length} pedidos</span>
             <div className="flex items-center gap-2">
               <button className="p-2 rounded-lg border border-border bg-card hover:bg-muted disabled:opacity-50 text-muted-foreground shadow-sm" disabled>
                 <ChevronLeft className="w-4 h-4" />
