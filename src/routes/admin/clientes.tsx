@@ -487,6 +487,38 @@ function ClientesPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const customerColumns: ExportColumn<Customer>[] = [
+    { header: "ID", value: (c) => c.id },
+    { header: "Nome", value: (c) => c.full_name },
+    { header: "Telefone", value: (c) => c.phone || "" },
+    { header: "WhatsApp", value: (c) => c.whatsapp || "" },
+    { header: "Endereço", value: (c) => c.address || "" },
+    { header: "Bairro", value: (c) => c.neighborhood || "" },
+    { header: "Cidade", value: (c) => c.city || "" },
+    { header: "VIP", value: (c) => (c.is_vip ? "Sim" : "Não") },
+    { header: "Status", value: (c) => (c.is_inactive ? "Inativo" : "Ativo") },
+    { header: "Faturamento", value: (c) => formatBRL(Number(c.total_billing) || 0) },
+    { header: "Observações", value: (c) => c.observations || "" },
+  ];
+
+  const handleExportCsv = () => {
+    if (filteredCustomers.length === 0) {
+      toast.error("Nenhum cliente para exportar.");
+      return;
+    }
+    exportToCsv("clientes", customerColumns, filteredCustomers);
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const handleExportPdf = () => {
+    if (filteredCustomers.length === 0) {
+      toast.error("Nenhum cliente para exportar.");
+      return;
+    }
+    const ok = exportToPdf("Clientes", customerColumns, filteredCustomers);
+    if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
+  };
+
 
 
   return (
