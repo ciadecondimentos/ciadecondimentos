@@ -13,7 +13,19 @@ import { Sidebar } from "@/components/Sidebar";
 import { Navbar } from "@/components/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getReportsSummary, getOrdersSummaryTable } from "@/lib/reports.functions";
+import { getReportsSummary, getOrdersSummaryTable, getReportsCharts } from "@/lib/reports.functions";
+import { useState } from "react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 
 
 export const Route = createFileRoute("/admin/relatorios")({
@@ -33,6 +45,10 @@ export const Route = createFileRoute("/admin/relatorios")({
       queryClient.ensureQueryData({
         queryKey: ['reports-orders'],
         queryFn: () => getOrdersSummaryTable(),
+      }),
+      queryClient.ensureQueryData({
+        queryKey: ['reports-charts'],
+        queryFn: () => getReportsCharts(),
       }),
     ]);
   },
@@ -67,6 +83,16 @@ function RelatoriosPage() {
     queryKey: ['reports-orders'],
     queryFn: () => fetchOrders(),
   });
+
+  const fetchCharts = useServerFn(getReportsCharts);
+  const { data: charts } = useQuery({
+    queryKey: ['reports-charts'],
+    queryFn: () => fetchCharts(),
+  });
+  const [period, setPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('weekly');
+
+  const periodData = charts?.[period] ?? [];
+  const periodTotal = periodData.reduce((acc: number, d: any) => acc + (d.total || 0), 0);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -110,7 +136,75 @@ function RelatoriosPage() {
           <StatCard icon={Users} value={summary?.totalCustomers.toString() || "0"} label="Clientes CRM" color="bg-secondary/10 text-secondary" borderColor="border-secondary" />
           <StatCard icon={Package} value={summary?.totalProducts.toString() || "0"} label="Total Produtos" color="bg-primary/10 text-primary" borderColor="border-primary" />
         </div>
-        
+
+        <div className="bg-card border border-border rounded-[24px] shadow-sm p-5 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-5 h-5 text-[#4d3227]" />
+              <div>
+                <h2 className="text-sm font-black uppercase tracking-widest text-[#4d3227]">Faturamento Bruto</h2>
+                <p className="text-xs text-muted-foreground font-bold mt-1">
+                  {period === 'weekly' && 'Últimos 7 dias'}
+                  {period === 'monthly' && 'Últimos 30 dias'}
+                  {period === 'yearly' && 'Todos os meses registrados'}
+                  {' · '}
+                  <span className="text-success">{formatCurrency(periodTotal)}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl self-start">
+              {([['weekly', 'Semanal'], ['monthly', 'Mensal'], ['yearly', 'Anual']] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setPeriod(key)}
+                  className={cn(
+                    "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                    period === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-[320px] w-full">
+            {periodData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
+                Nenhum faturamento registrado neste período.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {period === 'yearly' ? (
+                  <BarChart data={periodData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={70}
+                      tickFormatter={(v: number) => formatCurrency(v).replace('R$', '').trim()} />
+                    <Tooltip formatter={(v: any) => formatCurrency(Number(v))} labelStyle={{ fontWeight: 700 }} />
+                    <Bar dataKey="total" name="Faturamento" fill="#DFB316" radius={[6, 6, 0, 0]} maxBarSize={48} />
+                  </BarChart>
+                ) : (
+                  <AreaChart data={periodData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#539D17" stopOpacity={0.45} />
+                        <stop offset="100%" stopColor="#539D17" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={70}
+                      tickFormatter={(v: number) => formatCurrency(v).replace('R$', '').trim()} />
+                    <Tooltip formatter={(v: any) => formatCurrency(Number(v))} labelStyle={{ fontWeight: 700 }} />
+                    <Area type="monotone" dataKey="total" name="Faturamento" stroke="#539D17" strokeWidth={2} fill="url(#revGradient)" />
+                  </AreaChart>
+                )}
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
         <div className="bg-card border border-border rounded-[24px] overflow-hidden shadow-sm">
              <div className="px-8 py-6 border-b border-border flex items-center gap-3">
                  <ShoppingCart className="w-5 h-5 text-[#4d3227]" />
