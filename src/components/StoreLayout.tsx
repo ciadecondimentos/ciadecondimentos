@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import logoAsset from "@/assets/logo-transparent.png.asset.json";
 import { Button } from '@/components/ui/button';
+import { GrainCanvas } from '@/components/GrainCanvas';
 
 export function StoreLayout({
   children,
