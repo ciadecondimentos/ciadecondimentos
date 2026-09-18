@@ -118,8 +118,11 @@ function PedidosPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-md shadow-secondary/10">
-              <RotateCw className="w-4 h-4" />
+            <button
+              onClick={() => refetch()}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-md shadow-secondary/10"
+            >
+              <RotateCw className={cn("w-4 h-4", isFetching && "animate-spin")} />
               <span>Atualizar</span>
             </button>
             <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-lg shadow-primary/20 cursor-pointer">
