@@ -57,7 +57,7 @@ export function Sidebar({ productCount = 0, currentPath = "/" }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        "hidden lg:flex flex-col bg-[#4d3227] border-r border-border/10 fixed h-full left-0 top-0 z-30 transition-all duration-300 ease-in-out",
+        "hidden lg:flex flex-col bg-[#4d3227] border-r border-border/10 sticky top-0 h-screen shrink-0 z-30 transition-all duration-300 ease-in-out",
         isCollapsed ? "w-20" : "w-72"
       )}
     >
