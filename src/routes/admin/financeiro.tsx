@@ -34,6 +34,7 @@ import {
   getFinanceChartData
 } from "@/lib/finance.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { PayablesAgenda } from "@/components/PayablesAgenda";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -467,6 +468,9 @@ function FinanceiroPage() {
             isLoading={isFetchingStats}
           />
         </div>
+
+        {/* Contas a Pagar (Agenda) */}
+        <PayablesAgenda onPosted={handleRefresh} />
 
         {/* Finance Chart Section */}
         <div className="bg-card border border-border rounded-[24px] p-8 shadow-sm space-y-6">
