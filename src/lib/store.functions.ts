@@ -33,6 +33,8 @@ export const createStoreOrder = createServerFn({ method: "POST" })
       // Attempt to find or create customer
       let customerId = data.customerId;
       
+      const phone = (data.customerPhone ?? '').trim() || null;
+
       if (!customerId) {
         const [existingCustomer] = await sql`
           SELECT id FROM crm_customers 
@@ -42,10 +44,17 @@ export const createStoreOrder = createServerFn({ method: "POST" })
         
         if (existingCustomer) {
           customerId = existingCustomer.id;
+          if (phone) {
+            await sql`
+              UPDATE crm_customers
+              SET phone = ${phone}
+              WHERE id = ${customerId}
+            `;
+          }
         } else {
           const [newCustomer] = await sql`
-            INSERT INTO crm_customers (full_name, created_at)
-            VALUES (${data.customerName}, NOW())
+            INSERT INTO crm_customers (full_name, phone, created_at)
+            VALUES (${data.customerName}, ${phone}, NOW())
             RETURNING id
           `;
           customerId = newCustomer.id;

@@ -56,6 +56,7 @@ function StoreIndex() {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'money' | 'card'>('pix');
   const [cashReceived, setCashReceived] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [address, setAddress] = useState('');
   const [location, setLocation] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
