@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { sql } from "./db.server";
 import { z } from "zod";
 
+const dateLike = z
+  .union([z.string(), z.date()])
+  .transform((value) => (typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10)));
+
 const itemSchema = z.object({
   product_name: z.string(),
   quantity: z.number(),
@@ -12,7 +16,7 @@ const itemSchema = z.object({
 export const registerPurchase = createServerFn({ method: "POST" })
   .validator((data: any) => z.object({
     customer_id: z.number(),
-    purchase_date: z.string(),
+    purchase_date: dateLike,
     payment_method: z.string().nullable(),
     payment_status: z.string().nullable(),
     notes: z.string().nullable(),
@@ -44,8 +48,8 @@ export const registerPurchase = createServerFn({ method: "POST" })
 export const updatePurchaseGroup = createServerFn({ method: "POST" })
   .validator((data: any) => z.object({
     customer_id: z.number(),
-    original_date: z.string(),
-    purchase_date: z.string(),
+    original_date: dateLike,
+    purchase_date: dateLike,
     payment_method: z.string().nullable(),
     payment_status: z.string().nullable(),
     notes: z.string().nullable(),
