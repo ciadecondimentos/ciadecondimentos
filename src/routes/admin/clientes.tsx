@@ -760,7 +760,7 @@ function ClientesPage() {
           onSave={(data) => updateMutation.mutate({
             ...data,
             customer_id: selectedCustomer.id,
-            original_date: editingGroup.date,
+            original_date: new Date(editingGroup.date).toISOString().slice(0, 10),
           })}
           isSaving={updateMutation.isPending}
         />
