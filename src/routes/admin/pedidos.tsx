@@ -39,12 +39,62 @@ export const Route = createFileRoute("/admin/pedidos")({
 
 function PedidosPage() {
   const isHydrated = useHydrated();
+  const loaderData = Route.useLoaderData();
+  const queryClient = useQueryClient();
   const fetchOrders = useServerFn(getOrders);
-  const { data: orders = [], isLoading } = useQuery({
+  const updateStatusFn = useServerFn(setOrderPaymentStatus);
+  const deleteOrderFn = useServerFn(deleteOrder);
+  const { data: orders = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ["orders"],
     queryFn: () => fetchOrders(),
-    initialData: () => Route.useLoaderData(),
+    initialData: loaderData,
   });
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const filteredOrders = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return orders.filter((order) => {
+      const matchesTerm =
+        !term ||
+        String(order.id).includes(term) ||
+        (order.client || "").toLowerCase().includes(term);
+      const matchesStatus =
+        statusFilter === "todos" ||
+        (order.payment_status || "").toLowerCase() === statusFilter;
+      return matchesTerm && matchesStatus;
+    });
+  }, [orders, search, statusFilter]);
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  };
+
+  const handleMarkPaid = async (order: Order) => {
+    try {
+      await updateStatusFn({ data: { id: order.id, status: "pago" } });
+      toast.success(`Pedido #${order.id} marcado como pago.`);
+      setSelectedOrder(null);
+      invalidate();
+    } catch {
+      toast.error("Não foi possível dar baixa no pedido.");
+    }
+  };
+
+  const handleDelete = async (order: Order) => {
+    try {
+      await deleteOrderFn({ data: { id: order.id } });
+      toast.success(`Pedido #${order.id} excluído.`);
+      setSelectedOrder(null);
+      invalidate();
+    } catch {
+      toast.error("Não foi possível excluir o pedido.");
+    }
+  };
+
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
