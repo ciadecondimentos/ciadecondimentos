@@ -103,20 +103,39 @@
   .store-shell::before {
     content: "";
     position: fixed;
-    inset: 0;
+    inset: -10%;
     pointer-events: none;
     z-index: 0;
     background:
-      radial-gradient(38rem 38rem at 8% 12%, rgba(223, 179, 22, 0.20), transparent 70%),
-      radial-gradient(34rem 34rem at 92% 28%, rgba(142, 22, 17, 0.14), transparent 70%),
-      radial-gradient(30rem 30rem at 50% 95%, rgba(83, 157, 23, 0.14), transparent 70%);
-    animation: store-blobs 18s ease-in-out infinite alternate;
+      radial-gradient(42rem 42rem at 8% 12%, rgba(223, 179, 22, 0.34), transparent 68%),
+      radial-gradient(38rem 38rem at 92% 22%, rgba(167, 26, 20, 0.24), transparent 68%),
+      radial-gradient(34rem 34rem at 20% 88%, rgba(83, 157, 23, 0.24), transparent 70%),
+      radial-gradient(30rem 30rem at 78% 82%, rgba(223, 179, 22, 0.24), transparent 70%);
+    filter: blur(6px);
+    animation: store-blobs 16s ease-in-out infinite alternate;
+  }
+
+  .store-shell::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image:
+      radial-gradient(circle, rgba(142, 22, 17, 0.28) 0 2px, transparent 2.5px),
+      radial-gradient(circle, rgba(223, 179, 22, 0.35) 0 2.5px, transparent 3px),
+      radial-gradient(circle, rgba(83, 157, 23, 0.25) 0 1.8px, transparent 2.3px);
+    background-size: 180px 180px, 240px 240px, 300px 300px;
+    background-position: 0 0, 60px 90px, 130px 30px;
+    animation: store-spice-drift 30s linear infinite;
   }
 
   .store-shell > * {
     position: relative;
     z-index: 1;
   }
+
 
   .store-shell main {
     background: linear-gradient(180deg, transparent 0%, color-mix(in oklch, var(--yellow-light) 32%, transparent) 100%);
