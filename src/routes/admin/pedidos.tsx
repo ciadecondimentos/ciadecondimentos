@@ -314,6 +314,75 @@ function PedidosPage() {
         </div>
       </footer>
       </div>
+
+      <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
+        <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-serif italic text-2xl">
+              Pedido #{selectedOrder?.id}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedOrder && (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cliente</p>
+                  <p className="font-bold">{selectedOrder.client}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data</p>
+                  <p suppressHydrationWarning className="font-bold">
+                    {isHydrated ? new Date(selectedOrder.date).toLocaleDateString('pt-BR') : ''}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pagamento</p>
+                  <p className="font-bold uppercase">{selectedOrder.payment}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</p>
+                  <p className="font-bold">{selectedOrder.payment_status}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Itens</p>
+                <p className="font-medium leading-relaxed">{selectedOrder.items || '—'}</p>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Entrega</p>
+                <p className="font-medium">{selectedOrder.address || '—'}</p>
+                {selectedOrder.location && (
+                  <a
+                    href={selectedOrder.location}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                  >
+                    <MapPin className="w-3 h-3" /> Ver localização
+                  </a>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
+                <span className="text-xl font-bold">R$ {selectedOrder.total.toFixed(2).replace('.', ',')}</span>
+              </div>
+
+              {selectedOrder.payment_status !== 'Aprovado' && (
+                <button
+                  onClick={() => handleMarkPaid(selectedOrder)}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-success text-white hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Dar baixa (marcar como pago)
+                </button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
