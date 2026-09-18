@@ -22,6 +22,7 @@ export function StoreLayout({
 
   return (
     <div className={cn("store-shell min-h-screen font-['Wix_Madefor_Text']", !isHydrated && "opacity-0 transition-opacity duration-300")}>
+      <GrainCanvas />
       {/* Top Banner */}
       <div className="bg-[#8E1611] text-[#e8b57d] py-2 px-3 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em]">
         Entregas em toda a região • Qualidade garantida
