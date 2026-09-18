@@ -34,7 +34,11 @@ export interface SupplierPurchase {
 
 const PAID = "pago";
 
-export const getSuppliers = createServerFn({ method: "GET" }).handler(async () => {
+export const getSuppliers = createServerFn({ method: "GET" })
+  .validator((data: { from?: string | null; to?: string | null } | undefined) => data ?? {})
+  .handler(async ({ data }) => {
+  const from = data?.from || null;
+  const to = data?.to || null;
   const rows = await sql<any[]>`
     SELECT
       s.*,
@@ -49,6 +53,8 @@ export const getSuppliers = createServerFn({ method: "GET" }).handler(async () =
         SUM(COALESCE(total_price, 0)) AS total_purchased,
         SUM(CASE WHEN COALESCE(payment_status, '') <> ${PAID} THEN COALESCE(total_price, 0) ELSE 0 END) AS open_balance
       FROM supplier_purchases
+      WHERE (${from}::date IS NULL OR purchase_date >= ${from}::date)
+        AND (${to}::date IS NULL OR purchase_date <= ${to}::date)
       GROUP BY supplier_id
     ) p ON p.supplier_id = s.id
     ORDER BY s.company_name ASC
