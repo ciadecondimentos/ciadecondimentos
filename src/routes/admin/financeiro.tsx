@@ -646,7 +646,7 @@ function FinanceiroPage() {
                                  <Truck className="w-4 h-4" />
                                </button>
                              )}
-                             {t.source === 'manual' && (
+                             {(t.source === 'manual' || t.source === 'purchase') && (
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();
