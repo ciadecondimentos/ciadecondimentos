@@ -173,7 +173,7 @@ function FinanceiroPage() {
   });
 
   const updatePurchaseMutation = useMutation({
-    mutationFn: (data: { purchaseIds: number[]; date: string; value: number }) =>
+    mutationFn: (data: { purchaseIds: number[]; date: string; value: number; description?: string }) =>
       updatePurchaseEntryFn({ data }),
     onSuccess: async () => {
       setIsModalOpen(false);
