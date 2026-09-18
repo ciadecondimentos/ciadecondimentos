@@ -736,7 +736,8 @@ function FinanceiroPage() {
                   type="text" 
                   placeholder="Ex: Venda Direta, Aluguel, Fornecedor..."
                   {...register('category')}
-                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+                  readOnly={editingTransaction?.source === 'purchase'}
+                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold read-only:opacity-60"
                 />
               </div>
 
@@ -746,7 +747,8 @@ function FinanceiroPage() {
                   placeholder="Detalhes sobre o lançamento..."
                   {...register('description')}
                   rows={3}
-                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold resize-none"
+                  readOnly={editingTransaction?.source === 'purchase'}
+                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold resize-none read-only:opacity-60"
                 />
               </div>
 
