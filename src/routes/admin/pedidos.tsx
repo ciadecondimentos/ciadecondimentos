@@ -114,10 +114,6 @@ function PedidosPage() {
               <Download className="w-4 h-4" />
               <span>Exportar CSV</span>
             </button>
-            <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
-              <Trash2 className="w-4 h-4" />
-              <span>Limpar Todos</span>
-            </button>
           </div>
         </div>
 
