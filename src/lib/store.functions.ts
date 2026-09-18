@@ -5,6 +5,7 @@ import { sql } from "./db.server";
 export interface CreateOrderParams {
   customerId?: string | number;
   customerName: string;
+  customerPhone: string;
   address?: string | undefined;
   location?: string | undefined;
 
