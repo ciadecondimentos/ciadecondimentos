@@ -173,6 +173,7 @@ function StoreIndex() {
     return await createOrderFn({
       data: {
         customerName: customerName.trim() || "Cliente Online",
+        customerPhone: customerPhone.trim(),
         address: address.trim() || undefined,
         location: location || undefined,
         items: cart.map(item => ({
