@@ -6,6 +6,7 @@ import {
   RotateCw,
   Search,
   Trash2,
+  Pencil,
   ChevronRight,
   Wallet,
   ArrowUpRight,
@@ -27,6 +28,7 @@ import {
   getFinanceTransactions, 
   createFinanceTransaction, 
   deleteFinanceTransaction, 
+  updateFinanceTransaction,
   updateDeliveryCost,
   getFinanceChartData
 } from "@/lib/finance.functions";
@@ -112,6 +114,7 @@ function FinanceiroPage() {
   const [deliveryCost, setDeliveryCost] = useState("");
 
   const [modalType, setModalType] = useState<'Entrada' | 'Saída'>('Entrada');
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -125,6 +128,7 @@ function FinanceiroPage() {
   const fetchChartData = useServerFn(getFinanceChartData);
   const createTransactionFn = useServerFn(createFinanceTransaction);
   const deleteTransactionFn = useServerFn(deleteFinanceTransaction);
+  const updateTransactionFn = useServerFn(updateFinanceTransaction);
   const updateDeliveryCostFn = useServerFn(updateDeliveryCost);
 
 
@@ -149,6 +153,20 @@ function FinanceiroPage() {
       reset();
     },
     onError: () => toast.error("Erro ao registrar lançamento."),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updateTransactionFn({ data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-chart'] });
+      toast.success("Lançamento atualizado com sucesso!");
+      setIsModalOpen(false);
+      setEditingId(null);
+      reset();
+    },
+    onError: () => toast.error("Erro ao atualizar lançamento."),
   });
 
   const deleteMutation = useMutation({
@@ -184,6 +202,7 @@ function FinanceiroPage() {
   });
 
   const openAddModal = (type: 'Entrada' | 'Saída') => {
+    setEditingId(null);
     setModalType(type);
     reset({
       type,
@@ -195,6 +214,19 @@ function FinanceiroPage() {
     setIsModalOpen(true);
   };
 
+  const openEditModal = (t: any) => {
+    setEditingId(t.id);
+    setModalType(t.type === 'Saída' ? 'Saída' : 'Entrada');
+    reset({
+      type: t.type,
+      date: t.date ? new Date(t.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      category: t.category || '',
+      description: t.description || '',
+      value: String(t.value ?? ''),
+    });
+    setIsModalOpen(true);
+  };
+
   const openDeliveryModal = (transaction: any) => {
     setSelectedTransaction(transaction);
     setDeliveryCost(transaction.delivery_cost?.toString() || "");
@@ -202,7 +234,11 @@ function FinanceiroPage() {
   };
 
   const onSubmit = (data: any) => {
-    createMutation.mutate(data);
+    if (editingId) {
+      updateMutation.mutate({ ...data, id: editingId });
+    } else {
+      createMutation.mutate(data);
+    }
   };
 
   const handleDeliverySubmit = (e: React.FormEvent) => {
@@ -580,6 +616,18 @@ function FinanceiroPage() {
                                </button>
                              )}
                              {t.source === 'manual' && (
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   openEditModal(t);
+                                 }}
+                                 className="p-2 text-muted-foreground hover:text-primary transition-colors bg-muted/50 rounded-lg"
+                                 title="Editar lançamento"
+                               >
+                                 <Pencil className="w-4 h-4" />
+                               </button>
+                             )}
+                             {t.source === 'manual' && (
                                <button 
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -619,11 +667,11 @@ function FinanceiroPage() {
               modalType === 'Entrada' ? "bg-success" : "bg-primary"
             )}>
               <div>
-                <h2 className="text-2xl font-bold font-serif italic">Novo Lançamento</h2>
+                <h2 className="text-2xl font-bold font-serif italic">{editingId ? "Editar Lançamento" : "Novo Lançamento"}</h2>
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{modalType === 'Entrada' ? 'Registrar Entrada de Capital' : 'Registrar Saída de Capital'}</p>
               </div>
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => { setIsModalOpen(false); setEditingId(null); }}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
                 <Plus className="w-6 h-6 rotate-45" />
@@ -674,19 +722,19 @@ function FinanceiroPage() {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  disabled={createMutation.isPending}
+                  disabled={createMutation.isPending || updateMutation.isPending}
                   className={cn(
                     "w-full py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 disabled:opacity-50",
                     modalType === 'Entrada' ? "bg-success shadow-success/20" : "bg-primary shadow-primary/20"
                   )}
                 >
-                  {createMutation.isPending ? (
+                  {createMutation.isPending || updateMutation.isPending ? (
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Processando...</span>
                     </div>
                   ) : (
-                    <span>Confirmar Lançamento</span>
+                    <span>{editingId ? 'Salvar Alterações' : 'Confirmar Lançamento'}</span>
                   )}
                 </button>
               </div>
