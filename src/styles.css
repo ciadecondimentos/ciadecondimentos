@@ -217,6 +217,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .store-shell::after {
+    animation: none !important;
+  }
+
   .store-shell,
   .store-shell::before,
   .store-title-shimmer,
@@ -225,6 +229,7 @@
     animation: none !important;
   }
 }
+
 
 
 @media (max-width: 639px) {
