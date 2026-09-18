@@ -186,7 +186,7 @@ function PedidosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {orders.length === 0 && !isLoading ? (
+                {filteredOrders.length === 0 && !isLoading ? (
                   <tr>
                     <td colSpan={9} className="px-6 py-10 text-center text-muted-foreground font-bold">
                       Nenhum pedido encontrado.
