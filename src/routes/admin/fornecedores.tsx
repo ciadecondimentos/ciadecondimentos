@@ -61,6 +61,27 @@ function FornecedoresPage() {
     { company: "Junior. Imporio do tempero", city: "Recife", contact: "N/A", phone: "81 9655-0480", status: "Em dia", total: "R$ 0,00", open: "R$ 0,00" },
   ];
 
+  type Supplier = (typeof suppliers)[number];
+  const supplierColumns: ExportColumn<Supplier>[] = [
+    { header: "Fornecedor", value: (s) => s.company },
+    { header: "Cidade", value: (s) => s.city },
+    { header: "Contato", value: (s) => s.contact },
+    { header: "Telefone", value: (s) => s.phone },
+    { header: "Status", value: (s) => s.status },
+    { header: "Total Comprado", value: (s) => s.total },
+    { header: "Em Aberto", value: (s) => s.open },
+  ];
+
+  const handleExportCsv = () => {
+    exportToCsv("fornecedores", supplierColumns, suppliers);
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const handleExportPdf = () => {
+    const ok = exportToPdf("Fornecedores", supplierColumns, suppliers);
+    if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
+  };
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar currentPath="/admin/fornecedores" />
