@@ -160,6 +160,7 @@ function FinanceiroPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finance-stats'] });
       queryClient.invalidateQueries({ queryKey: ['finance-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-chart'] });
       toast.success("Lançamento registrado com sucesso!");
       setIsModalOpen(false);
       reset();
@@ -204,6 +205,7 @@ function FinanceiroPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finance-stats'] });
       queryClient.invalidateQueries({ queryKey: ['finance-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-chart'] });
       toast.success("Lançamento excluído!");
     },
     onError: () => toast.error("Erro ao excluir lançamento."),
