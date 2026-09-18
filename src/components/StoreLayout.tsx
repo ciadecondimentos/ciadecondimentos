@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import logoAsset from "@/assets/logo-transparent.png.asset.json";
 import { Button } from '@/components/ui/button';
+import { GrainCanvas } from '@/components/GrainCanvas';
 
 export function StoreLayout({
   children,
@@ -21,6 +22,7 @@ export function StoreLayout({
 
   return (
     <div className={cn("store-shell min-h-screen font-['Wix_Madefor_Text']", !isHydrated && "opacity-0 transition-opacity duration-300")}>
+      <GrainCanvas />
       {/* Top Banner */}
       <div className="bg-[#8E1611] text-[#e8b57d] py-2 px-3 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em]">
         Entregas em toda a região • Qualidade garantida
