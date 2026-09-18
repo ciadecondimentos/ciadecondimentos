@@ -35,15 +35,18 @@ function createClient() {
   });
 }
 
+const MUTATION_PATTERN = /\b(insert|update|delete|create|alter|drop|truncate)\b/i;
+
 export async function sql<T = any>(
   strings: TemplateStringsArray,
   ...values: unknown[]
 ): Promise<T> {
+  const isMutation = MUTATION_PATTERN.test(strings.join(' '));
   const queryKey = JSON.stringify({ strings, values });
-  const cached = queryCache.get(queryKey);
+  const cached = isMutation ? undefined : queryCache.get(queryKey);
   const now = Date.now();
 
-  // Cache fresco: retorno imediato
+  // Cache fresco: retorno imediato (somente leituras)
   if (cached && now - cached.timestamp < CACHE_TTL) {
     return cached.data as T;
   }
@@ -53,10 +56,11 @@ export async function sql<T = any>(
   const client = createClient();
   try {
     const freshData = await (client(strings, ...(values as never[])) as unknown as Promise<T>);
-    queryCache.set(queryKey, { data: freshData, timestamp: now });
-    // Invalida cache de queries relacionadas quando há modificações
-    if (strings.some(s => s.toLowerCase().includes('update') || s.toLowerCase().includes('insert') || s.toLowerCase().includes('delete'))) {
+    if (isMutation) {
+      // Escritas nunca são cacheadas e invalidam todas as leituras
       queryCache.clear();
+    } else {
+      queryCache.set(queryKey, { data: freshData, timestamp: now });
     }
     return freshData;
   } catch (err) {
