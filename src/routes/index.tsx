@@ -283,17 +283,17 @@ function StoreIndex() {
       <section className="relative rounded-[24px] sm:rounded-[32px] overflow-hidden bg-[#8E1611] min-h-[240px] sm:min-h-[350px] flex items-center justify-center py-10">
         <div className="relative z-10 w-full max-w-4xl px-4 flex flex-col items-center">
           <div className="flex flex-col items-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 text-center">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[#DFB316] leading-tight flex items-center gap-2 sm:gap-3">
-              <Search className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0" />
-              Encontre seu Sabor
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif leading-tight flex items-center gap-2 sm:gap-3">
+              <Search className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0 text-[#DFB316] store-float" />
+              <span className="store-title-shimmer">Encontre seu Sabor</span>
             </h2>
             <p className="text-white text-xs sm:text-base font-medium opacity-90">
               Busque pelos condimentos e especiarias que você procura
             </p>
           </div>
           
-          <div className="relative w-full max-w-2xl">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E1611]" />
+          <div className="relative w-full max-w-2xl store-search-wrap">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E1611] z-10" />
             <input 
               type="text"
               placeholder="Digite o nome do produto..."
@@ -302,6 +302,7 @@ function StoreIndex() {
               className="w-full pl-13 sm:pl-16 pr-4 sm:pr-6 h-13 sm:h-16 rounded-full bg-white text-[#8E1611] placeholder-[#8E1611]/50 focus:outline-none focus:ring-4 focus:ring-[#DFB316]/30 transition-all text-sm sm:text-lg shadow-2xl"
             />
           </div>
+
         </div>
 
         

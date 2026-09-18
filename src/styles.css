@@ -90,18 +90,117 @@
   }
 
   .store-shell {
-    background-color: var(--color-background);
+    position: relative;
+    background-color: #FFF8E7;
     background-image:
-      radial-gradient(circle at 12% 18%, color-mix(in oklch, var(--yellow-primary) 10%, transparent) 0 1px, transparent 1.5px),
-      radial-gradient(circle at 84% 72%, color-mix(in oklch, var(--red-primary) 7%, transparent) 0 1px, transparent 1.5px),
-      linear-gradient(135deg, color-mix(in oklch, var(--yellow-light) 70%, transparent), transparent 42%, color-mix(in oklch, var(--yellow-primary) 4%, transparent));
-    background-size: 34px 34px, 46px 46px, 100% 100%;
+      radial-gradient(circle at 12% 18%, color-mix(in oklch, var(--yellow-primary) 12%, transparent) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 84% 72%, color-mix(in oklch, var(--red-primary) 8%, transparent) 0 1px, transparent 1.5px),
+      linear-gradient(135deg, #FDF0CE 0%, #FFF8E7 38%, #FBEFD8 62%, #F7E7C9 100%);
+    background-size: 34px 34px, 46px 46px, 200% 200%;
+    animation: store-bg-shift 24s ease-in-out infinite;
+  }
+
+  .store-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(38rem 38rem at 8% 12%, rgba(223, 179, 22, 0.20), transparent 70%),
+      radial-gradient(34rem 34rem at 92% 28%, rgba(142, 22, 17, 0.14), transparent 70%),
+      radial-gradient(30rem 30rem at 50% 95%, rgba(83, 157, 23, 0.14), transparent 70%);
+    animation: store-blobs 18s ease-in-out infinite alternate;
+  }
+
+  .store-shell > * {
+    position: relative;
+    z-index: 1;
   }
 
   .store-shell main {
     background: linear-gradient(180deg, transparent 0%, color-mix(in oklch, var(--yellow-light) 32%, transparent) 100%);
   }
 }
+
+@keyframes store-bg-shift {
+  0%, 100% { background-position: 0 0, 0 0, 0% 50%; }
+  50% { background-position: 0 0, 0 0, 100% 50%; }
+}
+
+@keyframes store-blobs {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  50% { transform: translate3d(2%, -1.5%, 0) scale(1.06); opacity: 1; }
+  100% { transform: translate3d(-2%, 1.5%, 0) scale(1.03); opacity: 0.9; }
+}
+
+@keyframes store-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes store-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes store-glow {
+  0%, 100% { box-shadow: 0 10px 40px rgba(0,0,0,0.25), 0 0 0 0 rgba(223,179,22,0.45); }
+  50% { box-shadow: 0 10px 40px rgba(0,0,0,0.25), 0 0 0 10px rgba(223,179,22,0); }
+}
+
+.store-title-shimmer {
+  background: linear-gradient(90deg, #DFB316 0%, #F6E27A 25%, #DFB316 50%, #F6E27A 75%, #DFB316 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: store-shimmer 5s linear infinite;
+}
+
+.store-float {
+  animation: store-float 3.5s ease-in-out infinite;
+}
+
+.store-search-wrap {
+  border-radius: 9999px;
+  animation: store-glow 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+.store-search-wrap:focus-within {
+  transform: scale(1.02);
+  animation-play-state: paused;
+}
+
+.store-search-wrap input::placeholder {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.store-search-wrap:focus-within input::placeholder {
+  opacity: 0.35;
+  transform: translateX(6px);
+}
+
+.store-search-wrap svg {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.store-search-wrap:focus-within svg {
+  transform: scale(1.15) rotate(-8deg);
+  color: #539D17;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-shell,
+  .store-shell::before,
+  .store-title-shimmer,
+  .store-float,
+  .store-search-wrap {
+    animation: none !important;
+  }
+}
+
 
 @media (max-width: 639px) {
   main[class*="max-w-\\[1400px\\]"] {
