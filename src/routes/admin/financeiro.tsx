@@ -18,6 +18,9 @@ import {
   X,
   Save,
   BarChart3,
+  CandlestickChart,
+  LineChart as LineChartIcon,
+  AreaChart as AreaChartIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/Sidebar";
@@ -51,6 +54,10 @@ import {
   Legend,
   AreaChart,
   Area,
+  LineChart,
+  Line,
+  ComposedChart,
+  Cell,
 } from "recharts";
 
 
@@ -118,6 +125,7 @@ function FinanceiroPage() {
   const [modalType, setModalType] = useState<'Entrada' | 'Saída'>('Entrada');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [chartType, setChartType] = useState<'area' | 'line' | 'candle'>('area');
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -342,6 +350,25 @@ function FinanceiroPage() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
+  // Mesmos dados, formatados como velas: corpo = 0 -> lucro, pavio = -saídas -> entradas.
+  const candleData = useMemo(() => {
+    return (chartData || []).map((d: any) => ({
+      date: d.date,
+      entradas: d.entradas,
+      saidas: d.saidas,
+      lucro: d.lucro,
+      corpo: [0, d.lucro] as [number, number],
+      pavio: [-d.saidas, d.entradas] as [number, number],
+    }));
+  }, [chartData]);
+
+  const chartTypes = [
+    { key: 'area' as const, label: 'Área', icon: AreaChartIcon },
+    { key: 'line' as const, label: 'Linha', icon: LineChartIcon },
+    { key: 'candle' as const, label: 'Vela', icon: CandlestickChart },
+  ];
+
+
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -484,6 +511,25 @@ function FinanceiroPage() {
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Entradas vs Saídas & Lucro Líquido</p>
               </div>
             </div>
+            <div className="flex p-1 bg-background border border-border rounded-full">
+              {chartTypes.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setChartType(t.key)}
+                  title={`Gráfico em ${t.label.toLowerCase()}`}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                    chartType === t.key
+                      ? "bg-secondary text-secondary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <t.icon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="h-[400px] w-full">
@@ -491,11 +537,10 @@ function FinanceiroPage() {
               <div className="h-full w-full flex items-center justify-center bg-muted/20 rounded-2xl">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
-            ) : (
+            ) : chartType === 'area' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData || []}>
                   <defs>
-
                     <linearGradient id="colorEntradas" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--success)" stopOpacity={0.1}/>
                       <stop offset="95%" stopColor="var(--success)" stopOpacity={0}/>
@@ -557,6 +602,83 @@ function FinanceiroPage() {
                     strokeDasharray="5 5"
                   />
                 </AreaChart>
+              </ResponsiveContainer>
+            ) : chartType === 'line' ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData || []}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--muted-foreground)' }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--muted-foreground)' }}
+                    tickFormatter={(val) => `R$ ${val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      borderRadius: '16px', 
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+                    }}
+                    labelStyle={{ fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}
+                  />
+                  <Legend verticalAlign="top" height={36}/>
+                  <Line name="Entradas" type="monotone" dataKey="entradas" stroke="var(--success)" strokeWidth={3} dot={false} />
+                  <Line name="Saídas" type="monotone" dataKey="saidas" stroke="var(--primary)" strokeWidth={3} dot={false} />
+                  <Line name="Lucro Líquido" type="monotone" dataKey="lucro" stroke="var(--info)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={candleData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--muted-foreground)' }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--muted-foreground)' }}
+                    tickFormatter={(val) => `R$ ${val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      borderRadius: '16px', 
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+                    }}
+                    labelStyle={{ fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}
+                    formatter={(value: any, name: any) => {
+                      if (name === 'Faixa (saídas/entradas)' || name === 'Lucro Líquido') {
+                        const arr = Array.isArray(value) ? value : [0, value];
+                        return [
+                          `${formatCurrency(Number(arr[0]))} → ${formatCurrency(Number(arr[1]))}`,
+                          name,
+                        ];
+                      }
+                      return [formatCurrency(Number(value)), name];
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={36}/>
+                  <Bar name="Faixa (saídas/entradas)" dataKey="pavio" barSize={3} fill="var(--muted-foreground)" />
+                  <Bar name="Lucro Líquido" dataKey="corpo" barSize={18} radius={[2, 2, 2, 2]}>
+                    {candleData.map((d, i) => (
+                      <Cell key={i} fill={d.lucro >= 0 ? "var(--success)" : "var(--primary)"} />
+                    ))}
+                  </Bar>
+                </ComposedChart>
               </ResponsiveContainer>
             )}
           </div>
