@@ -30,6 +30,7 @@ export const getOrdersSummaryTable = createServerFn({ method: "GET" })
         p.payment_status
       FROM crm_purchases p
       JOIN crm_customers c ON p.customer_id = c.id
+      WHERE p.source = 'loja'
       GROUP BY p.purchase_date, c.full_name, p.payment_status
       ORDER BY p.purchase_date DESC
       LIMIT 10
