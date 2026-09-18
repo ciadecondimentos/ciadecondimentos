@@ -138,28 +138,23 @@ function PedidosPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text" 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar pedido por cliente ou ID..." 
                 className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm shadow-sm"
               />
             </div>
             
             <div className="relative w-full md:w-56">
-               <select className="w-full pl-4 pr-10 py-3 bg-card border border-border rounded-xl outline-none focus:border-primary appearance-none text-sm font-bold text-foreground shadow-sm">
-                  <option>Todos os Status</option>
-                  <option>Pago</option>
-                  <option>Pendente</option>
-                  <option>Cancelado</option>
-                  <option>Entregue</option>
-               </select>
-               <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            </div>
-
-            <div className="relative w-full md:w-64">
-               <select className="w-full pl-4 pr-10 py-3 bg-card border border-border rounded-xl outline-none focus:border-primary appearance-none text-sm font-bold text-foreground shadow-sm">
-                  <option>Período: Todos os Pedidos</option>
-                  <option>Últimas 24 horas</option>
-                  <option>Últimos 7 dias</option>
-                  <option>Este mês</option>
+               <select
+                 value={statusFilter}
+                 onChange={(e) => setStatusFilter(e.target.value)}
+                 className="w-full pl-4 pr-10 py-3 bg-card border border-border rounded-xl outline-none focus:border-primary appearance-none text-sm font-bold text-foreground shadow-sm"
+               >
+                  <option value="todos">Todos os Status</option>
+                  <option value="aprovado">Pago</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="cancelado">Cancelado</option>
                </select>
                <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
