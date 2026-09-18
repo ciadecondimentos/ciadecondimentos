@@ -761,7 +761,7 @@ function FinanceiroPage() {
                     modalType === 'Entrada' ? "bg-success shadow-success/20" : "bg-primary shadow-primary/20"
                   )}
                 >
-                  {createMutation.isPending || updateMutation.isPending ? (
+                  {createMutation.isPending || updateMutation.isPending || updatePurchaseMutation.isPending ? (
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Processando...</span>
