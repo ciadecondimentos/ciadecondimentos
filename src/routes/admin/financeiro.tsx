@@ -320,23 +320,23 @@ function FinanceiroPage() {
 
         {/* Filter Bar */}
         <div className="bg-card border border-border rounded-[24px] p-4 flex flex-col xl:flex-row gap-4 items-center shadow-sm">
-           <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
+           <div className="flex flex-col md:flex-row gap-3 md:flex-wrap xl:flex-nowrap flex-1 w-full min-w-0">
               <input 
                 type="date" 
                 value={filters.dateFrom}
                 onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+                className="min-w-0 flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
               />
               <input 
                 type="date" 
                 value={filters.dateTo}
                 onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+                className="min-w-0 flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
               />
               <select 
                 value={filters.type}
                 onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
+                className="min-w-0 flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
               >
                  <option>Todos os Tipos</option>
                  <option>Entrada</option>
@@ -345,7 +345,7 @@ function FinanceiroPage() {
               <select 
                 value={filters.category}
                 onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
+                className="min-w-0 flex-1 px-4 py-3 bg-background border border-border rounded-xl outline-none focus:border-primary text-sm font-bold appearance-none"
               >
                  <option>Todas as Categorias</option>
                  <option>Vendas</option>
@@ -354,7 +354,7 @@ function FinanceiroPage() {
               </select>
            </div>
 
-           <div className="flex gap-3 w-full xl:w-auto">
+           <div className="flex gap-3 w-full xl:w-auto shrink-0">
               <button 
                 onClick={() => handleRefresh()}
                 className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"

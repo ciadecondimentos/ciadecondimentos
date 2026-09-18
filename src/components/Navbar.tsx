@@ -62,8 +62,7 @@ export function Navbar({ title = "Dashboard", menuItems = [], mobileMenuId = "mo
 
   return (
     <nav className={cn(
-      "sticky top-0 z-20 bg-card border-b border-border px-3 py-3 sm:px-6 sm:py-4 transition-all duration-300 ease-in-out",
-      isSidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
+      "sticky top-0 z-20 bg-card border-b border-border px-3 py-3 sm:px-6 sm:py-4 transition-all duration-300 ease-in-out"
     )}>
       <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 sm:gap-4 lg:hidden min-w-0">
