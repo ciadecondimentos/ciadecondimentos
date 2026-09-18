@@ -18,6 +18,9 @@ import {
   X,
   Save,
   BarChart3,
+  CandlestickChart,
+  LineChart as LineChartIcon,
+  AreaChart as AreaChartIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/Sidebar";
@@ -122,6 +125,7 @@ function FinanceiroPage() {
   const [modalType, setModalType] = useState<'Entrada' | 'Saída'>('Entrada');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [chartType, setChartType] = useState<'area' | 'line' | 'candle'>('area');
   
   const [filters, setFilters] = useState({
     dateFrom: '',
