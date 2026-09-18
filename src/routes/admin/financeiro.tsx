@@ -368,19 +368,6 @@ function FinanceiroPage() {
     { key: 'candle' as const, label: 'Vela', icon: CandlestickChart },
   ];
 
-  const axisProps = {
-    tooltip: (
-      <Tooltip
-        contentStyle={{
-          backgroundColor: 'var(--card)',
-          borderRadius: '16px',
-          border: '1px solid var(--border)',
-          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-        }}
-        labelStyle={{ fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}
-      />
-    ),
-  };
 
 
   return (
