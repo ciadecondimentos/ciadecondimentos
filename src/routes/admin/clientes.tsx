@@ -538,9 +538,13 @@ function ClientesPage() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm">
+            <button onClick={handleExportCsv} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm">
               <Download className="w-4 h-4" />
               <span>Exportar CSV</span>
+            </button>
+            <button onClick={handleExportPdf} className="flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card hover:bg-muted transition-all text-[10px] font-black uppercase tracking-widest shadow-sm">
+              <Download className="w-4 h-4" />
+              <span>Exportar PDF</span>
             </button>
             <button 
               onClick={() => setCustomerModalOpen(true)}
