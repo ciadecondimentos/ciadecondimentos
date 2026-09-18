@@ -130,6 +130,7 @@ function FinanceiroPage() {
   const createTransactionFn = useServerFn(createFinanceTransaction);
   const deleteTransactionFn = useServerFn(deleteFinanceTransaction);
   const updateTransactionFn = useServerFn(updateFinanceTransaction);
+  const updatePurchaseEntryFn = useServerFn(updatePurchaseEntry);
   const updateDeliveryCostFn = useServerFn(updateDeliveryCost);
 
 
@@ -168,6 +169,24 @@ function FinanceiroPage() {
       reset();
     },
     onError: () => toast.error("Erro ao atualizar lançamento."),
+  });
+
+  const updatePurchaseMutation = useMutation({
+    mutationFn: (data: { purchaseIds: number[]; date: string; value: number }) =>
+      updatePurchaseEntryFn({ data }),
+    onSuccess: async () => {
+      setIsModalOpen(false);
+      setEditingId(null);
+      setEditingTransaction(null);
+      reset();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['finance-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['finance-transactions'] }),
+        queryClient.invalidateQueries({ queryKey: ['finance-chart'] }),
+      ]);
+      toast.success("Entrada atualizada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao atualizar entrada."),
   });
 
   const deleteMutation = useMutation({
