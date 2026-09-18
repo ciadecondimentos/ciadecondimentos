@@ -702,7 +702,7 @@ function FinanceiroPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{modalType === 'Entrada' ? 'Registrar Entrada de Capital' : 'Registrar Saída de Capital'}</p>
               </div>
               <button 
-                onClick={() => { setIsModalOpen(false); setEditingId(null); }}
+                onClick={() => { setIsModalOpen(false); setEditingId(null); setEditingTransaction(null); }}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
                 <Plus className="w-6 h-6 rotate-45" />
@@ -755,7 +755,7 @@ function FinanceiroPage() {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={createMutation.isPending || updateMutation.isPending || updatePurchaseMutation.isPending}
                   className={cn(
                     "w-full py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 disabled:opacity-50",
                     modalType === 'Entrada' ? "bg-success shadow-success/20" : "bg-primary shadow-primary/20"
