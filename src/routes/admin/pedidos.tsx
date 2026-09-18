@@ -253,13 +253,27 @@ function PedidosPage() {
                       </td>
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all">
+                          <button
+                            title="Visualizar pedido"
+                            onClick={() => setSelectedOrder(order)}
+                            className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all"
+                          >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button className="p-2 rounded-lg hover:bg-primary/10 hover:text-primary text-muted-foreground transition-all">
+                          {order.payment_status !== 'Aprovado' && (
+                            <button
+                              title="Dar baixa (marcar como pago)"
+                              onClick={() => handleMarkPaid(order)}
+                              className="p-2 rounded-lg hover:bg-success/10 hover:text-success text-muted-foreground transition-all"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            title="Excluir pedido"
+                            onClick={() => handleDelete(order)}
+                            className="p-2 rounded-lg hover:bg-primary/10 hover:text-primary text-muted-foreground transition-all"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
