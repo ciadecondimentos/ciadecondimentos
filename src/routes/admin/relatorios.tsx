@@ -46,6 +46,10 @@ export const Route = createFileRoute("/admin/relatorios")({
         queryKey: ['reports-orders'],
         queryFn: () => getOrdersSummaryTable(),
       }),
+      queryClient.ensureQueryData({
+        queryKey: ['reports-charts'],
+        queryFn: () => getReportsCharts(),
+      }),
     ]);
   },
   component: RelatoriosPage,
