@@ -71,6 +71,36 @@ function PedidosPage() {
     });
   }, [orders, search, statusFilter]);
 
+  const orderColumns: ExportColumn<Order>[] = [
+    { header: "Pedido", value: (o) => `#${o.id}` },
+    { header: "Cliente", value: (o) => o.client },
+    { header: "Data", value: (o) => o.date },
+    { header: "Total", value: (o) => formatBRL(Number(o.total) || 0) },
+    { header: "Pagamento", value: (o) => o.payment },
+    { header: "Status Pagamento", value: (o) => o.payment_status },
+    { header: "Status Pedido", value: (o) => o.order_status },
+    { header: "Itens", value: (o) => (o.items || []).map((i: any) => `${i.quantity}x ${i.name}`).join(" | ") },
+    { header: "Entrega", value: (o) => o.address || "" },
+  ];
+
+  const handleExportCsv = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("Nenhum pedido para exportar.");
+      return;
+    }
+    exportToCsv("pedidos", orderColumns, filteredOrders);
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const handleExportPdf = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("Nenhum pedido para exportar.");
+      return;
+    }
+    const ok = exportToPdf("Pedidos", orderColumns, filteredOrders);
+    if (!ok) toast.error("Permita pop-ups para gerar o PDF.");
+  };
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["orders"] });
     queryClient.invalidateQueries({ queryKey: ["dashboard"] });
