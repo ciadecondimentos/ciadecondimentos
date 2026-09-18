@@ -192,9 +192,13 @@ function PedidosPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full xl:w-auto">
-            <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
+            <button onClick={handleExportCsv} className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
               <Download className="w-4 h-4" />
               <span>Exportar CSV</span>
+            </button>
+            <button onClick={handleExportPdf} className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all text-xs font-bold uppercase tracking-widest shadow-sm">
+              <Download className="w-4 h-4" />
+              <span>Exportar PDF</span>
             </button>
           </div>
         </div>
