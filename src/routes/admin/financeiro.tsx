@@ -29,6 +29,7 @@ import {
   createFinanceTransaction, 
   deleteFinanceTransaction, 
   updateFinanceTransaction,
+  updatePurchaseEntry,
   updateDeliveryCost,
   getFinanceChartData
 } from "@/lib/finance.functions";
@@ -115,6 +116,7 @@ function FinanceiroPage() {
 
   const [modalType, setModalType] = useState<'Entrada' | 'Saída'>('Entrada');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -129,6 +131,7 @@ function FinanceiroPage() {
   const createTransactionFn = useServerFn(createFinanceTransaction);
   const deleteTransactionFn = useServerFn(deleteFinanceTransaction);
   const updateTransactionFn = useServerFn(updateFinanceTransaction);
+  const updatePurchaseEntryFn = useServerFn(updatePurchaseEntry);
   const updateDeliveryCostFn = useServerFn(updateDeliveryCost);
 
 
@@ -167,6 +170,24 @@ function FinanceiroPage() {
       reset();
     },
     onError: () => toast.error("Erro ao atualizar lançamento."),
+  });
+
+  const updatePurchaseMutation = useMutation({
+    mutationFn: (data: { purchaseIds: number[]; date: string; value: number }) =>
+      updatePurchaseEntryFn({ data }),
+    onSuccess: async () => {
+      setIsModalOpen(false);
+      setEditingId(null);
+      setEditingTransaction(null);
+      reset();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['finance-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['finance-transactions'] }),
+        queryClient.invalidateQueries({ queryKey: ['finance-chart'] }),
+      ]);
+      toast.success("Entrada atualizada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao atualizar entrada."),
   });
 
   const deleteMutation = useMutation({
@@ -216,10 +237,11 @@ function FinanceiroPage() {
 
   const openEditModal = (t: any) => {
     setEditingId(t.id);
+    setEditingTransaction(t);
     setModalType(t.type === 'Saída' ? 'Saída' : 'Entrada');
     reset({
       type: t.type,
-      date: t.date ? new Date(t.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: t.rawDate || new Date().toISOString().split('T')[0],
       category: t.category || '',
       description: t.description || '',
       value: String(t.value ?? ''),
@@ -234,7 +256,16 @@ function FinanceiroPage() {
   };
 
   const onSubmit = (data: any) => {
-    if (editingId) {
+    if (editingId && editingTransaction?.source === 'purchase') {
+      const purchaseIds: number[] = editingTransaction.purchaseIds?.length
+        ? editingTransaction.purchaseIds
+        : [Number(editingTransaction.realId)];
+      updatePurchaseMutation.mutate({
+        purchaseIds,
+        date: data.date,
+        value: Number(data.value),
+      });
+    } else if (editingId) {
       updateMutation.mutate({ ...data, id: editingId });
     } else {
       createMutation.mutate(data);
@@ -615,7 +646,7 @@ function FinanceiroPage() {
                                  <Truck className="w-4 h-4" />
                                </button>
                              )}
-                             {t.source === 'manual' && (
+                             {(t.source === 'manual' || t.source === 'purchase') && (
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -671,7 +702,7 @@ function FinanceiroPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{modalType === 'Entrada' ? 'Registrar Entrada de Capital' : 'Registrar Saída de Capital'}</p>
               </div>
               <button 
-                onClick={() => { setIsModalOpen(false); setEditingId(null); }}
+                onClick={() => { setIsModalOpen(false); setEditingId(null); setEditingTransaction(null); }}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
                 <Plus className="w-6 h-6 rotate-45" />
@@ -705,7 +736,8 @@ function FinanceiroPage() {
                   type="text" 
                   placeholder="Ex: Venda Direta, Aluguel, Fornecedor..."
                   {...register('category')}
-                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+                  readOnly={editingTransaction?.source === 'purchase'}
+                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold read-only:opacity-60"
                 />
               </div>
 
@@ -715,20 +747,21 @@ function FinanceiroPage() {
                   placeholder="Detalhes sobre o lançamento..."
                   {...register('description')}
                   rows={3}
-                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold resize-none"
+                  readOnly={editingTransaction?.source === 'purchase'}
+                  className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold resize-none read-only:opacity-60"
                 />
               </div>
 
               <div className="pt-4">
                 <button 
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={createMutation.isPending || updateMutation.isPending || updatePurchaseMutation.isPending}
                   className={cn(
                     "w-full py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all hover:brightness-110 disabled:opacity-50",
                     modalType === 'Entrada' ? "bg-success shadow-success/20" : "bg-primary shadow-primary/20"
                   )}
                 >
-                  {createMutation.isPending || updateMutation.isPending ? (
+                  {createMutation.isPending || updateMutation.isPending || updatePurchaseMutation.isPending ? (
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Processando...</span>

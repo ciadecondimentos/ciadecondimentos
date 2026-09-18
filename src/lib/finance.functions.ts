@@ -320,3 +320,44 @@ export const updateFinanceTransaction = createServerFn({ method: "POST" })
     `;
     return { success: true };
   });
+
+// Edita uma entrada originada de venda (crm_purchases).
+// O novo valor total é distribuído proporcionalmente entre os itens da compra.
+export const updatePurchaseEntry = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z
+      .object({
+        purchaseIds: z.array(z.number().int().positive()).min(1),
+        date: z.string(),
+        value: z.number().finite().min(0),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const ids = [...new Set(data.purchaseIds)];
+
+    const rows = await sql<Array<{ id: number; total_price: string }>>`
+      SELECT id, total_price FROM public.crm_purchases WHERE id = ANY(${ids as any}::int[])
+    `;
+    const current = rows.reduce((acc, r) => acc + Number(r.total_price || 0), 0);
+
+    let remaining = data.value;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]!;
+      const isLast = i === rows.length - 1;
+      const share = isLast
+        ? Math.round(remaining * 100) / 100
+        : current > 0
+          ? Math.round(((Number(row.total_price || 0) / current) * data.value) * 100) / 100
+          : Math.round((data.value / rows.length) * 100) / 100;
+      remaining = Math.round((remaining - share) * 100) / 100;
+
+      await sql`
+        UPDATE public.crm_purchases
+        SET total_price = ${share}, purchase_date = ${data.date}::date
+        WHERE id = ${row.id}
+      `;
+    }
+
+    return { success: rows.length > 0 };
+  });
