@@ -29,6 +29,7 @@ import {
   createFinanceTransaction, 
   deleteFinanceTransaction, 
   updateFinanceTransaction,
+  updatePurchaseEntry,
   updateDeliveryCost,
   getFinanceChartData
 } from "@/lib/finance.functions";
