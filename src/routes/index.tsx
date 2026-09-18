@@ -498,7 +498,7 @@ function StoreIndex() {
                     ? <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Obtendo localização...</span>
                     : location
                       ? <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Localização anexada</span>
-                      : <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Enviar minha localização</span>}
+                      : <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Enviar minha localização (opcional)</span>}
                 </Button>
                 {location && (
                   <button
