@@ -293,3 +293,30 @@ export const deleteFinanceTransaction = createServerFn({ method: "POST" })
     await sql`DELETE FROM public.finance_transactions WHERE id = ${data.id.replace('manual-', '').split('-')[0]}::int`;
     return { success: true };
   });
+
+export const updateFinanceTransaction = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z
+      .object({
+        id: z.string(),
+        date: z.string(),
+        type: z.enum(["Entrada", "Saída"]),
+        category: z.string(),
+        description: z.string(),
+        value: z.number(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const numericId = data.id.replace("manual-", "").split("-")[0];
+    await sql`
+      UPDATE public.finance_transactions
+      SET date = ${data.date},
+          type = ${data.type},
+          category = ${data.category},
+          description = ${data.description},
+          value = ${data.value}
+      WHERE id = ${numericId}::int
+    `;
+    return { success: true };
+  });
