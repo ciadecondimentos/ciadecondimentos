@@ -26,6 +26,7 @@ import {
   Cell
 } from 'recharts';
 import { cn } from "@/lib/utils";
+import { exportToCsv, exportToPdf, formatBRL, type ExportColumn } from "@/lib/export-utils";
 import { getCustomers, getCustomerStats, getCustomerPurchases, getSalesByPeriod, type Customer, type CustomerPurchase, createCustomer } from "@/lib/customers.functions";
 import { getProducts, type Product } from "@/lib/products.functions";
 import { registerPurchase, updatePurchaseGroup } from "@/lib/purchases.functions";
