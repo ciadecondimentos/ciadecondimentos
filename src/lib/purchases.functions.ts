@@ -20,9 +20,9 @@ export const registerPurchase = createServerFn({ method: "POST" })
   }).parse(data))
   .handler(async ({ data }) => {
     try {
-      const results = [];
+      const ids: number[] = [];
       for (const item of data.items) {
-        const [inserted] = await sql`
+        const rows = await sql<{ id: number }[]>`
           INSERT INTO crm_purchases (
             customer_id, product_name, quantity, unit_price, total_price, 
             purchase_date, payment_method, payment_status, notes
@@ -30,11 +30,11 @@ export const registerPurchase = createServerFn({ method: "POST" })
             ${data.customer_id}, ${item.product_name}, ${item.quantity}, ${item.unit_price}, ${item.total_price},
             ${data.purchase_date}, ${data.payment_method}, ${data.payment_status}, ${data.notes}
           )
-          RETURNING *
+          RETURNING id
         `;
-        results.push(inserted);
+        if (rows[0]) ids.push(Number(rows[0].id));
       }
-      return results;
+      return { success: true, ids };
     } catch (error) {
       console.error("Error registering purchase:", error);
       throw error;
@@ -59,9 +59,9 @@ export const updatePurchaseGroup = createServerFn({ method: "POST" })
         WHERE customer_id = ${data.customer_id}
           AND purchase_date::date = ${data.original_date}::date
       `;
-      const results = [];
+      const ids: number[] = [];
       for (const item of data.items) {
-        const [inserted] = await sql`
+        const rows = await sql<{ id: number }[]>`
           INSERT INTO crm_purchases (
             customer_id, product_name, quantity, unit_price, total_price,
             purchase_date, payment_method, payment_status, notes
@@ -69,11 +69,11 @@ export const updatePurchaseGroup = createServerFn({ method: "POST" })
             ${data.customer_id}, ${item.product_name}, ${item.quantity}, ${item.unit_price}, ${item.total_price},
             ${data.purchase_date}, ${data.payment_method}, ${data.payment_status}, ${data.notes}
           )
-          RETURNING *
+          RETURNING id
         `;
-        results.push(inserted);
+        if (rows[0]) ids.push(Number(rows[0].id));
       }
-      return results;
+      return { success: true, ids };
     } catch (error) {
       console.error("Error updating purchase group:", error);
       throw error;
