@@ -330,15 +330,20 @@ export const updatePurchaseEntry = createServerFn({ method: "POST" })
         purchaseIds: z.array(z.number().int().positive()).min(1),
         date: z.string(),
         value: z.number().finite().min(0),
+        description: z.string().optional(),
       })
       .parse(data),
   )
   .handler(async ({ data }) => {
     const ids = [...new Set(data.purchaseIds)];
 
-    const rows = await sql<Array<{ id: number; total_price: string }>>`
-      SELECT id, total_price FROM public.crm_purchases WHERE id = ANY(${ids as any}::int[])
-    `;
+    const rows: Array<{ id: number; total_price: string; customer_id: number }> = [];
+    for (const id of ids) {
+      const found = await sql<Array<{ id: number; total_price: string; customer_id: number }>>`
+        SELECT id, total_price, customer_id FROM public.crm_purchases WHERE id = ${id}
+      `;
+      if (found[0]) rows.push(found[0]);
+    }
     const current = rows.reduce((acc, r) => acc + Number(r.total_price || 0), 0);
 
     let remaining = data.value;
@@ -356,6 +361,14 @@ export const updatePurchaseEntry = createServerFn({ method: "POST" })
         UPDATE public.crm_purchases
         SET total_price = ${share}, purchase_date = ${data.date}::date
         WHERE id = ${row.id}
+      `;
+    }
+
+    // A descrição da entrada é o nome do cliente da venda.
+    const name = data.description?.trim();
+    if (name && rows[0]) {
+      await sql`
+        UPDATE public.crm_customers SET full_name = ${name} WHERE id = ${rows[0].customer_id}
       `;
     }
 

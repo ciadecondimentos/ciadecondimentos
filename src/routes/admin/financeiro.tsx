@@ -173,7 +173,7 @@ function FinanceiroPage() {
   });
 
   const updatePurchaseMutation = useMutation({
-    mutationFn: (data: { purchaseIds: number[]; date: string; value: number }) =>
+    mutationFn: (data: { purchaseIds: number[]; date: string; value: number; description?: string }) =>
       updatePurchaseEntryFn({ data }),
     onSuccess: async () => {
       setIsModalOpen(false);
@@ -263,7 +263,8 @@ function FinanceiroPage() {
       updatePurchaseMutation.mutate({
         purchaseIds,
         date: data.date,
-        value: Number(data.value),
+        value: Number(String(data.value).replace(',', '.')),
+        description: data.description,
       });
     } else if (editingId) {
       updateMutation.mutate({ ...data, id: editingId });
@@ -736,7 +737,6 @@ function FinanceiroPage() {
                   type="text" 
                   placeholder="Ex: Venda Direta, Aluguel, Fornecedor..."
                   {...register('category')}
-                  readOnly={editingTransaction?.source === 'purchase'}
                   className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold read-only:opacity-60"
                 />
               </div>
@@ -747,7 +747,6 @@ function FinanceiroPage() {
                   placeholder="Detalhes sobre o lançamento..."
                   {...register('description')}
                   rows={3}
-                  readOnly={editingTransaction?.source === 'purchase'}
                   className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl outline-none focus:border-primary transition-all text-sm font-bold resize-none read-only:opacity-60"
                 />
               </div>
