@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { exportToCsv, exportToPdf, formatBRL, type ExportColumn } from "@/lib/export-utils";
 import { getCustomers, getCustomerStats, getCustomerPurchases, getSalesByPeriod, type Customer, type CustomerPurchase, createCustomer } from "@/lib/customers.functions";
 import { getProducts, type Product } from "@/lib/products.functions";
-import { registerPurchase, updatePurchaseGroup } from "@/lib/purchases.functions";
+import { registerPurchase, updatePurchaseGroup, deletePurchaseGroup } from "@/lib/purchases.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
