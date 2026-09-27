@@ -95,9 +95,20 @@ export const getCustomerPurchases = createServerFn({ method: "GET" })
   .handler(async ({ data: customerId }) => {
     try {
       const purchases = await sql<CustomerPurchase[]>`
-        SELECT * FROM crm_purchases 
+        SELECT
+          id,
+          customer_id,
+          product_name,
+          quantity,
+          unit_price,
+          total_price,
+          purchase_date::text AS purchase_date,
+          payment_method,
+          payment_status,
+          notes
+        FROM crm_purchases
         WHERE customer_id = ${customerId}
-        ORDER BY purchase_date DESC
+        ORDER BY purchase_date DESC, id DESC
       `;
       return purchases;
     } catch (error) {
