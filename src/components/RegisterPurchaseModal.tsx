@@ -29,6 +29,14 @@ const toFiniteNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const getLocalDateValue = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export function RegisterPurchaseModal({ customer, products, onClose, onSave, isSaving, title, initialItems, initialDate, initialPaymentMethod, initialPaymentStatus, initialNotes }: RegisterPurchaseModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"UN" | "KG">("UN");
@@ -40,7 +48,7 @@ export function RegisterPurchaseModal({ customer, products, onClose, onSave, isS
   const valueWasDraggedRef = useRef(false);
   
   // Form states
-  const [purchaseDate, setPurchaseDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
+  const [purchaseDate, setPurchaseDate] = useState(initialDate || getLocalDateValue());
   const [paymentMethod, setPaymentMethod] = useState(initialPaymentMethod || "dinheiro");
   const [paymentStatus, setPaymentStatus] = useState(initialPaymentStatus || "pago");
   const [notes, setNotes] = useState(initialNotes || "");

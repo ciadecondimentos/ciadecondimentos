@@ -108,6 +108,17 @@ function buildWhatsAppLink(customer: Customer, date: string, items: CustomerPurc
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
+function normalizeDateOnly(value: string) {
+  return value.slice(0, 10);
+}
+
+function formatDateOnly(value: string) {
+  const normalized = normalizeDateOnly(value);
+  const [year, month, day] = normalized.split("-");
+  if (!year || !month || !day) return value;
+  return `${day}/${month}/${year}`;
+}
+
 function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup }: { customer: Customer, onClose: () => void, onRegisterClick: () => void, onEditGroup: (group: { date: string, items: CustomerPurchase[] }) => void }) {
   const fetchPurchases = useServerFn(getCustomerPurchases);
   const { data: purchases, isLoading } = useQuery({
@@ -125,7 +136,7 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
     if (!purchases) return [];
     const groups: Record<string, CustomerPurchase[]> = {};
     purchases.forEach(p => {
-      const date = new Date(p.purchase_date).toLocaleDateString('pt-BR');
+      const date = formatDateOnly(p.purchase_date);
       if (!groups[date]) groups[date] = [];
       groups[date].push(p);
     });
@@ -134,7 +145,7 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
       const dateA = a[1][0]?.purchase_date;
       const dateB = b[1][0]?.purchase_date;
       if (!dateA || !dateB) return 0;
-      return new Date(dateB).getTime() - new Date(dateA).getTime();
+      return normalizeDateOnly(dateB).localeCompare(normalizeDateOnly(dateA));
     });
 
   }, [purchases]);
@@ -427,14 +438,14 @@ function ClientesPage() {
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => updatePurchase({ data }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      setEditingGroup(null);
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["customerStats"] });
       if (selectedCustomer) {
-        queryClient.invalidateQueries({ queryKey: ["customer-purchases", selectedCustomer.id] });
+        await queryClient.refetchQueries({ queryKey: ["customer-purchases", selectedCustomer.id], exact: true });
       }
       toast.success("Pedido atualizado com sucesso!");
-      setEditingGroup(null);
     },
     onError: (error) => {
       console.error("Erro ao atualizar pedido:", error);
@@ -444,14 +455,14 @@ function ClientesPage() {
 
   const registerMutation = useMutation({
     mutationFn: (data: any) => savePurchase({ data }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      setRegisterModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["customerStats"] });
       if (selectedCustomer) {
-        queryClient.invalidateQueries({ queryKey: ["customer-purchases", selectedCustomer.id] });
+        await queryClient.refetchQueries({ queryKey: ["customer-purchases", selectedCustomer.id], exact: true });
       }
       toast.success("Compra registrada com sucesso!");
-      setRegisterModalOpen(false);
     },
     onError: (error) => {
       console.error("Erro ao registrar compra:", error);
@@ -752,7 +763,7 @@ function ClientesPage() {
             unit_price: Number(item.unit_price),
             total_price: Number(item.total_price)
           }))}
-          initialDate={editingGroup.date ? new Date(editingGroup.date).toISOString().split('T')[0] : undefined}
+          initialDate={editingGroup.date ? normalizeDateOnly(editingGroup.date) : undefined}
           initialPaymentMethod={editingGroup.items[0]?.payment_method || "dinheiro"}
           initialPaymentStatus={editingGroup.items[0]?.payment_status || "pago"}
           initialNotes={editingGroup.items[0]?.notes || ""}
@@ -760,7 +771,7 @@ function ClientesPage() {
           onSave={(data) => updateMutation.mutate({
             ...data,
             customer_id: selectedCustomer.id,
-            original_date: new Date(editingGroup.date).toISOString().slice(0, 10),
+            original_date: normalizeDateOnly(editingGroup.date),
           })}
           isSaving={updateMutation.isPending}
         />
