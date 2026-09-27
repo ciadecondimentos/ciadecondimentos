@@ -83,3 +83,14 @@ export const updatePurchaseGroup = createServerFn({ method: "POST" })
       throw error;
     }
   });
+
+export const deletePurchaseGroup = createServerFn({ method: "POST" })
+  .validator((data: any) => z.object({ customer_id: z.number(), purchase_date: dateLike }).parse(data))
+  .handler(async ({ data }) => {
+    await sql`
+      DELETE FROM crm_purchases
+      WHERE customer_id = ${data.customer_id}
+        AND purchase_date::date = ${data.purchase_date}::date
+    `;
+    return { success: true };
+  });
