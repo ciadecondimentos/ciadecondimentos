@@ -96,7 +96,7 @@ function buildWhatsAppLink(customer: Customer, date: string, items: CustomerPurc
     ``,
     `*Itens:*`,
     ...items.map(item =>
-      `• ${item.product_name} — ${item.quantity}x ${formatBRL(Number(item.unit_price))} = ${formatBRL(Number(item.total_price))}`
+      `• ${item.product_name} — ${formatQty(item.quantity)}x ${formatBRL(Number(item.unit_price))} = ${formatBRL(Number(item.total_price))}`
     ),
     ``,
     `*Total: ${formatBRL(total)}*`,
@@ -106,6 +106,12 @@ function buildWhatsAppLink(customer: Customer, date: string, items: CustomerPurc
   ];
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
+function formatQty(q: unknown) {
+  const n = Number(q);
+  if (!Number.isFinite(n)) return String(q ?? "");
+  return n.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
 }
 
 function normalizeDateOnly(value: string) {
@@ -124,6 +130,19 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
   const { data: purchases, isLoading } = useQuery({
     queryKey: ["customer-purchases", customer.id],
     queryFn: () => fetchPurchases({ data: customer.id }),
+  });
+  const queryClient = useQueryClient();
+  const deleteGroupFn = useServerFn(deletePurchaseGroup);
+  const deleteGroupMutation = useMutation({
+    mutationFn: (purchaseDate: string) =>
+      deleteGroupFn({ data: { customer_id: Number(customer.id), purchase_date: purchaseDate.slice(0, 10) } }),
+    onSuccess: () => {
+      toast.success("Compra excluída.");
+      queryClient.invalidateQueries({ queryKey: ["customer-purchases", customer.id] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customerStats"] });
+    },
+    onError: () => toast.error("Erro ao excluir compra."),
   });
 
   const totalComprado = purchases?.reduce((acc, p) => acc + Number(p.total_price), 0) || 0;
@@ -288,9 +307,20 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
                           <div className="flex items-center gap-2">
                             <span className="text-sm">🗓️</span>
                             <span className="text-xs font-bold text-[#4d3227]">{date}</span>
+                            <button
+                              title="Excluir compra inteira"
+                              disabled={deleteGroupMutation.isPending}
+                              onClick={() => {
+                                if (confirm(`Excluir toda a compra de ${date}?`)) {
+                                  deleteGroupMutation.mutate(items[0]?.purchase_date || "");
+                                }
+                              }}
+                              className="p-1 rounded-md text-muted-foreground hover:text-[#c23321] hover:bg-[#c23321]/10 transition-colors disabled:opacity-50">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                           <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight">
-                            {totalItems} produtos • {totalUnits} unidades
+                            {totalItems} produtos • {formatQty(totalUnits)} unidades
                           </p>
                         </div>
                         <div className="text-right">
@@ -331,7 +361,7 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
                           {items.map((purchase) => (
                             <div key={purchase.id} className="py-3 flex items-center justify-between group">
                               <div className="flex flex-col">
-                                <span className="text-xs font-bold text-[#4d3227]">{purchase.product_name} ({purchase.quantity}x)</span>
+                                <span className="text-xs font-bold text-[#4d3227]">{purchase.product_name} ({formatQty(purchase.quantity)}x)</span>
                                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
                                   {purchase.payment_method || "dinheiro"}
                                 </span>
@@ -339,7 +369,7 @@ function PurchaseHistoryModal({ customer, onClose, onRegisterClick, onEditGroup 
                               <div className="flex items-center gap-3">
                                 <div className="text-right">
                                   <p className="text-[9px] text-muted-foreground font-medium">
-                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(purchase.unit_price))} × {purchase.quantity}
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(purchase.unit_price))} × {formatQty(purchase.quantity)}
                                   </p>
                                   <p className="text-xs font-bold text-[#c23321]">
                                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(purchase.total_price))}
