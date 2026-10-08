@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+Use versioned asset pointers for admin installation icons and keep manifest, Apple touch icon, and install banner references synchronized so icon updates are not hidden by old cached URLs.
