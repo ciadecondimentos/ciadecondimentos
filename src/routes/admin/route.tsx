@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { checkAdminAuth } from "@/lib/admin-auth.functions";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
+import adminIcon from "@/assets/admin-icon-192.png.asset.json";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/admin")({
     ],
     links: [
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "apple-touch-icon", href: adminIcon.url },
     ],
   }),
   beforeLoad: async ({ location }) => {
