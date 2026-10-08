@@ -1,0 +1,14 @@
+{
+  "name": "Cia de Condimentos - Painel",
+  "short_name": "Cia Admin",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#FFF8E7",
+  "theme_color": "#8E1611",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
