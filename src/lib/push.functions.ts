@@ -7,6 +7,19 @@ async function ensureTable() {
   await sql`CREATE TABLE IF NOT EXISTS admin_push_tokens (token text PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now())`;
 }
 
+// Public web-push config (safe for browser); read at runtime because it is not baked into the build.
+export const getPushConfig = createServerFn({ method: "GET" }).handler(async () => {
+  const env = process.env;
+  const appId = env["FIREBASE_MESSAGING_APP_ID"] ?? "";
+  return {
+    apiKey: env["FIREBASE_MESSAGING_WEB_API_KEY"] ?? "",
+    projectId: env["FIREBASE_MESSAGING_PROJECT_ID"] ?? "",
+    appId,
+    messagingSenderId: appId.split(":")[1] ?? "",
+    vapidKey: env["FIREBASE_MESSAGING_VAPID_KEY"] ?? "",
+  };
+});
+
 export const savePushToken = createServerFn({ method: "POST" })
   .validator((d: { token: string }) => z.object({ token: z.string().min(10).max(4096) }).parse(d))
   .handler(async ({ data }) => {
