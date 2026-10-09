@@ -1,5 +1,6 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { checkAdminAuth } from "@/lib/admin-auth.functions";
+import { PushNotificationsButton } from "@/components/PushNotificationsButton";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import adminIcon from "@/assets/admin-icon-192.png.asset.json";
 
@@ -45,5 +46,3 @@ function AdminLayout() {
     </>
   );
 }
-const _unused = {
-});
