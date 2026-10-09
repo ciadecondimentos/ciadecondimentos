@@ -1,5 +1,6 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { checkAdminAuth } from "@/lib/admin-auth.functions";
+import { PushNotificationsButton } from "@/components/PushNotificationsButton";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import adminIcon from "@/assets/admin-icon-192.png.asset.json";
 
@@ -32,10 +33,16 @@ export const Route = createFileRoute("/admin")({
       throw redirect({ to: "/admin/login" });
     }
   },
-  component: () => (
+  component: AdminLayout,
+});
+
+function AdminLayout() {
+  const isLogin = useLocation({ select: (l) => l.pathname.startsWith("/admin/login") });
+  return (
     <>
       <InstallAppBanner />
       <Outlet />
+      {!isLogin && <PushNotificationsButton />}
     </>
-  ),
-});
+  );
+}
