@@ -32,10 +32,18 @@ export const Route = createFileRoute("/admin")({
       throw redirect({ to: "/admin/login" });
     }
   },
-  component: () => (
+  component: AdminLayout,
+});
+
+function AdminLayout() {
+  const isLogin = useLocation({ select: (l) => l.pathname.startsWith("/admin/login") });
+  return (
     <>
       <InstallAppBanner />
       <Outlet />
+      {!isLogin && <PushNotificationsButton />}
     </>
-  ),
+  );
+}
+const _unused = {
 });
