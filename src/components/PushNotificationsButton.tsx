@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell, BellRing } from "lucide-react";
 import { toast } from "sonner";
-import { savePushToken } from "@/lib/push.functions";
-
-const appId = import.meta.env['VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_APP_ID'] as string | undefined;
-const vapidKey = import.meta.env['VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_VAPID_KEY'] as string | undefined;
-const firebaseConfig = {
-  apiKey: (import.meta.env['VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_WEB_API_KEY'] as string) ?? "",
-  projectId: (import.meta.env['VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_PROJECT_ID'] as string) ?? "",
-  appId: appId ?? "",
-  messagingSenderId: appId?.split(":")[1] ?? "",
-};
+import { savePushToken, getPushConfig } from "@/lib/push.functions";
 
 export function PushNotificationsButton() {
   const [enabled, setEnabled] = useState(false);
@@ -25,7 +16,8 @@ export function PushNotificationsButton() {
   const enable = async () => {
     setBusy(true);
     try {
-      if (!firebaseConfig.apiKey || !vapidKey || !firebaseConfig.messagingSenderId) {
+      const { vapidKey, ...firebaseConfig } = await getPushConfig();
+      if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !vapidKey || !firebaseConfig.messagingSenderId) {
         toast.error("Notificações não configuradas.");
         return;
       }
