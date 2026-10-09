@@ -98,6 +98,14 @@ export const createStoreOrder = createServerFn({ method: "POST" })
       `;
 
       
+      try {
+        const { notifyAdmins } = await import("./push.functions");
+        const totalFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(data.total);
+        await notifyAdmins("🛒 Novo pedido na loja!", `${data.customerName} — ${totalFmt}`);
+      } catch (e) {
+        console.error("Push notify failed:", e);
+      }
+
       return newPurchase;
     } catch (error) {
       console.error("Error creating store order:", error);
